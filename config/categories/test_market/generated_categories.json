@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Test Category",
+    "description": "Test",
+    "growth_constraint_min": -10,
+    "growth_constraint_max": 10,
+    "ma_window_days": 30
+  }
+]

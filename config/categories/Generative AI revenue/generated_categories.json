@@ -1,0 +1,162 @@
+[
+  {
+    "name": "New Product/Service Launches",
+    "description": "Announcements of new generative AI models, platforms, tools, or applications that are expected to drive new revenue streams.",
+    "growth_constraint_min": 5.0,
+    "growth_constraint_max": 20.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Major Partnerships & Alliances",
+    "description": "Significant collaborations between companies, research institutions, or governments that aim to accelerate generative AI development or market adoption.",
+    "growth_constraint_min": 3.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Strategic Investments & Funding Rounds",
+    "description": "Venture capital investments, corporate venture funding, or M&A activities in generative AI companies, indicating market confidence and growth potential.",
+    "growth_constraint_min": 4.0,
+    "growth_constraint_max": 18.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Enterprise Adoption & Use Cases",
+    "description": "News about large enterprises integrating generative AI into their operations, leading to increased demand and revenue for AI solutions.",
+    "growth_constraint_min": 6.0,
+    "growth_constraint_max": 22.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Technological Breakthroughs & Innovations",
+    "description": "Significant advancements in AI algorithms, model architectures, or hardware that enhance generative AI capabilities and open new market opportunities.",
+    "growth_constraint_min": 7.0,
+    "growth_constraint_max": 25.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Regulatory & Policy Changes",
+    "description": "Government regulations, ethical guidelines, or policy decisions that impact the development, deployment, or monetization of generative AI.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 60
+  },
+  {
+    "name": "Talent & Workforce Development",
+    "description": "News related to the availability of skilled AI professionals, training programs, or educational initiatives that support the generative AI ecosystem.",
+    "growth_constraint_min": 2.0,
+    "growth_constraint_max": 12.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Marketplace & Platform Growth",
+    "description": "Expansion and increased activity on generative AI marketplaces, app stores, or developer platforms, indicating growing user engagement and transaction volumes.",
+    "growth_constraint_min": 5.0,
+    "growth_constraint_max": 18.0,
+    "importance": "medium",
+    "ma_window_days": 14
+  },
+  {
+    "name": "Economic Factors & Market Trends",
+    "description": "Broader economic conditions, inflation, interest rates, or shifts in consumer/business spending that indirectly affect the generative AI market.",
+    "growth_constraint_min": -8.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 14
+  },
+  {
+    "name": "Geopolitical Events & International Relations",
+    "description": "Global political developments, trade wars, or international agreements that could influence AI research, development, and cross-border data flows.",
+    "growth_constraint_min": -7.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Cybersecurity & Data Privacy Concerns",
+    "description": "News related to security breaches, data privacy violations, or the development of AI-powered security solutions impacting trust and adoption.",
+    "growth_constraint_min": -6.0,
+    "growth_constraint_max": 8.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Ethical Considerations & Societal Impact",
+    "description": "Discussions and developments around the ethical implications of generative AI, bias, misinformation, and its broader societal effects.",
+    "growth_constraint_min": -4.0,
+    "growth_constraint_max": 7.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Hardware & Infrastructure Developments",
+    "description": "Advancements in AI chips, cloud computing, and data center infrastructure that are critical for supporting generative AI workloads.",
+    "growth_constraint_min": 4.0,
+    "growth_constraint_max": 17.0,
+    "importance": "medium",
+    "ma_window_days": 60
+  },
+  {
+    "name": "Open Source Contributions & Community Growth",
+    "description": "Developments in open-source generative AI projects, community engagement, and the release of new open-source models.",
+    "growth_constraint_min": 3.0,
+    "growth_constraint_max": 14.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Competitive Landscape Shifts",
+    "description": "Changes in market share, new entrants, or the consolidation of players within the generative AI market.",
+    "growth_constraint_min": -3.0,
+    "growth_constraint_max": 12.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Developer Tooling & Ecosystem Support",
+    "description": "Improvements and new releases in tools, SDKs, and frameworks that facilitate the development and deployment of generative AI applications.",
+    "growth_constraint_min": 4.0,
+    "growth_constraint_max": 16.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Performance Benchmarks & Evaluations",
+    "description": "Reports and analyses comparing the performance of different generative AI models and solutions, influencing adoption decisions.",
+    "growth_constraint_min": 2.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Supply Chain & Component Availability",
+    "description": "News related to the availability and cost of essential components (e.g., GPUs, specialized hardware) required for training and running generative AI models.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Corporate Actions & Restructuring",
+    "description": "Mergers, acquisitions, divestitures, or significant internal reorganizations within companies operating in the generative AI space.",
+    "growth_constraint_min": -2.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Neutral/Noise",
+    "description": "News that is relevant to the generative AI market but has no discernible material impact on the overall revenue growth forecast.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 0.0,
+    "importance": "medium",
+    "ma_window_days": 0
+  }
+]

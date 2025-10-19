@@ -1,0 +1,53 @@
+x-service-common:
+  &service-common
+  build:
+    context: .
+    dockerfile: ./Dockerfile
+  image: forecasting_app_img
+  container_name: forecasting_app_con
+  restart: unless-stopped
+  command: streamlit run app.py --server.port 8501
+  volumes:
+    - "/mnt/s/XMO/TMO/_Tools/GDELT Project/.env:/app/config/.env:ro"
+  networks:
+    - reverse_proxy
+
+services:
+  forecasting_app_dev:
+    <<: *service-common
+    profiles: [dev]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.forecasting_app.entrypoints=websecure"
+      - "traefik.http.routers.forecasting_app.tls=true"
+      - "traefik.http.services.forecasting_app.loadbalancer.server.port=8501"
+      - "traefik.http.routers.forecasting_app.rule=Host(`stat-hh-worker-dev.corp.statista.com`) && PathPrefix(`/forecasting_app`) && PathRegexp(`^/forecasting_app($|/.*)`)"
+  forecasting_app_prod:
+    <<: *service-common
+    profiles: [prod]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.forecasting_app.entrypoints=websecure"
+      - "traefik.http.routers.forecasting_app.tls=true"
+      - "traefik.http.services.forecasting_app.loadbalancer.server.port=8501"
+      - "traefik.http.routers.forecasting_app.rule=Host(`stat-hh-worker-prod.corp.statista.com`) && PathPrefix(`/forecasting_app`) && PathRegexp(`^/forecasting_app($|/.*)`)"
+
+networks:
+  reverse_proxy:
+    external: true

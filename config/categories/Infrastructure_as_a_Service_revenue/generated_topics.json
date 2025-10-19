@@ -1,0 +1,42 @@
+[
+  {
+    "topic": "IaaS",
+    "active": true
+  },
+  {
+    "topic": "Cloud Providers",
+    "active": true
+  },
+  {
+    "topic": "Virtualization",
+    "active": true
+  },
+  {
+    "topic": "Cost Management",
+    "active": false
+  },
+  {
+    "topic": "Scalability",
+    "active": false
+  },
+  {
+    "topic": "Hybrid Cloud",
+    "active": false
+  },
+  {
+    "topic": "Disaster Recovery",
+    "active": false
+  },
+  {
+    "topic": "Data Storage",
+    "active": false
+  },
+  {
+    "topic": "Network Security",
+    "active": false
+  },
+  {
+    "topic": "Market Growth",
+    "active": false
+  }
+]

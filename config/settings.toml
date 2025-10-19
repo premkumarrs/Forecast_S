@@ -1,0 +1,112 @@
+# AI Market Forecaster SQL - Application Settings
+
+[app]
+title = "AI Market Forecaster SQL"
+version = "0.1.0"
+description = "Market forecasting tool with SQL data integration"
+
+[ui]
+# Default page configuration
+page_icon = "📈"
+layout = "wide"
+initial_sidebar_state = "expanded"
+
+# Page labels
+[ui.pages]
+sql_data_pull = "SQL Data Pull"
+global_forecast = "Global Forecast"
+distribution = "Distribution"
+news_llm = "News and LLM (optional)"
+export = "Export"
+
+[defaults]
+# Default year ranges
+hist_cutoff_min = 2000
+hist_cutoff_max = 2030
+hist_cutoff_default = 2020
+
+forecast_until_min = 2020
+forecast_until_max = 2040
+forecast_until_default = 2025
+
+# Default forecasting parameters
+forecast_method = "baseline"
+confidence_level = 0.95
+seasonality = true
+
+[data]
+# Data validation settings
+max_missing_percentage = 20.0
+min_data_points = 10
+outlier_threshold = 3.0
+
+# Time series settings
+default_frequency = "M"  # Monthly
+min_forecast_periods = 1
+max_forecast_periods = 60
+
+[weights]
+# Weight calculation settings
+default_weight_method = "variance"
+decay_factor = 0.95
+learning_rate = 0.1
+max_weight_history = 100
+
+[news]
+# News analysis settings
+default_time_window = "1D"
+max_articles_per_batch = 100
+sentiment_confidence_threshold = 0.5
+market_relevance_threshold = 0.3
+
+# Recency weighting settings (half-life in days)
+# This controls how much weight recent news gets vs older news
+# With 90-day data window, using 90-day half-life means:
+#   - Articles from today: 100% weight
+#   - Articles from 45 days ago: ~71% weight  
+#   - Articles from 90 days ago: 50% weight
+news_half_life_days = 90   # News half-life (default: 90 days to match data window)
+
+# Temporal decay over forecast horizon
+# Controls how news impact decays over forecast years
+# 0.6 means decay halves at 60% of forecast period
+long_term_decay_rate = 0.6
+
+# Alternative configurations:
+# More aggressive weighting (recent news dominates more):
+#   news_half_life_days = 60
+# Less aggressive weighting (more equal weighting):
+#   news_half_life_days = 180
+
+[news.moving_average]
+# Moving average configuration for category-specific windows
+max_window_days = 120  # Maximum allowed MA window for any category
+default_window_days = 30  # Default for new categories when not specified
+min_data_points = 3  # Minimum news items for valid MA calculation
+enable_dynamic_adaptation = true  # Use actual data days if less than window
+
+[export]
+# Export settings
+default_format = "csv"
+max_export_rows = 10000
+include_metadata = true
+
+[performance]
+# Performance settings
+max_cache_size = 100
+cache_ttl_minutes = 30
+max_concurrent_forecasts = 5
+
+[logging]
+# Logging configuration
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+max_log_files = 5
+max_log_size_mb = 10
+
+[gdelt]
+# TLS certificate verification for GDELT API connections.
+# SECURITY: Leave as true in production. Set to false only to troubleshoot
+# certificate issues in controlled environments; the app will log a warning
+# when disabled and only relax verification for *.gdeltproject.org.
+ssl_verify = true

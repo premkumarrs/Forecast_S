@@ -1,0 +1,162 @@
+[
+  {
+    "name": "Interest Rate Hikes",
+    "description": "News related to central banks increasing benchmark interest rates, directly impacting the cost of debt capital.",
+    "growth_constraint_min": -15.0,
+    "growth_constraint_max": 5.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Interest Rate Cuts",
+    "description": "News related to central banks decreasing benchmark interest rates, making debt capital cheaper.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Venture Capital Funding Rounds (Equity)",
+    "description": "Announcements of significant equity funding rounds for venture-backed companies, which often influence their need and ability to raise debt.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Venture Debt Deal Announcements",
+    "description": "Specific news about venture debt facilities being closed, including deal size, terms, and the participating companies and lenders.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 20.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Venture Debt Lender Activity",
+    "description": "News concerning the strategies, expansion, or contraction of venture debt providers, including new funds raised by lenders.",
+    "growth_constraint_min": -8.0,
+    "growth_constraint_max": 12.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Startup Valuations",
+    "description": "Reports and analyses on the changing valuations of startups, which can affect their borrowing capacity and the attractiveness of venture debt.",
+    "growth_constraint_min": -12.0,
+    "growth_constraint_max": 8.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Economic Growth Forecasts",
+    "description": "Projections for overall economic expansion or contraction, influencing investor sentiment and the risk appetite for debt financing.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Inflation Trends",
+    "description": "News regarding the rate of inflation, which can prompt changes in monetary policy and affect the real cost of debt.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 5.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Sector-Specific Boom/Bust Cycles",
+    "description": "News highlighting rapid growth or decline in specific technology or venture-backed sectors that heavily utilize venture debt.",
+    "growth_constraint_min": -15.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Regulatory Changes (Financial)",
+    "description": "New or proposed regulations affecting lending practices, capital requirements for financial institutions, or the venture capital industry.",
+    "growth_constraint_min": -7.0,
+    "growth_constraint_max": 7.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Mergers & Acquisitions (Venture-Backed)",
+    "description": "News about acquisitions of venture-backed companies, which can impact outstanding venture debt or signal market health.",
+    "growth_constraint_min": -8.0,
+    "growth_constraint_max": 8.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Initial Public Offering (IPO) Market Activity",
+    "description": "Trends in the IPO market, as successful IPOs can lead to debt repayment or refinancing, affecting overall debt capital flows.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 14
+  },
+  {
+    "name": "Geopolitical Events",
+    "description": "Major global events (e.g., wars, significant trade disputes) that create uncertainty and impact capital markets.",
+    "growth_constraint_min": -15.0,
+    "growth_constraint_max": -5.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Credit Market Conditions",
+    "description": "General sentiment and liquidity in broader credit markets, which can influence the availability and terms of venture debt.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 14
+  },
+  {
+    "name": "Technology Innovation & Adoption",
+    "description": "News about breakthrough technologies or widespread adoption of new tech trends that create new venture-backed opportunities.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Corporate Debt Issuance (Non-Venture)",
+    "description": "Activity in the broader corporate bond market, which can compete for investor capital or reflect overall economic health.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 5.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Default/Bankruptcy Filings",
+    "description": "News of venture-backed companies defaulting on loans or filing for bankruptcy, impacting lender confidence and risk assessment.",
+    "growth_constraint_min": -20.0,
+    "growth_constraint_max": -10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Strategic Investments (Non-VC)",
+    "description": "Significant investments made by established corporations into venture-backed companies, signaling market validation or consolidation.",
+    "growth_constraint_min": -7.0,
+    "growth_constraint_max": 7.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Supply Chain News",
+    "description": "Disruptions or improvements in critical supply chains that affect the operational viability and growth prospects of many venture-backed businesses.",
+    "growth_constraint_min": -8.0,
+    "growth_constraint_max": 5.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Neutral/Noise",
+    "description": "News that is relevant to the venture debt market but has no material directional impact on the overall growth rate of capital raised.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 0.0,
+    "importance": "medium",
+    "ma_window_days": 0
+  }
+]

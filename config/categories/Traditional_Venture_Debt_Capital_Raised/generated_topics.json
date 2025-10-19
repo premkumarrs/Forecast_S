@@ -1,0 +1,42 @@
+[
+  {
+    "topic": "Venture Debt",
+    "active": true
+  },
+  {
+    "topic": "Venture Capital",
+    "active": true
+  },
+  {
+    "topic": "Startup Funding",
+    "active": true
+  },
+  {
+    "topic": "Growth Capital",
+    "active": true
+  },
+  {
+    "topic": "Financing",
+    "active": false
+  },
+  {
+    "topic": "Investment",
+    "active": false
+  },
+  {
+    "topic": "Debt Financing",
+    "active": false
+  },
+  {
+    "topic": "Private Equity",
+    "active": false
+  },
+  {
+    "topic": "Economic Outlook",
+    "active": false
+  },
+  {
+    "topic": "Interest Rates",
+    "active": false
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Geopolitical Events",
+    "description": "Events that impact political stability and economic conditions globally, such as conflicts, trade wars, or diplomatic relations that can influence the Infrastructure as a Service market.",
+    "growth_constraint_min": -20.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Strategic Investments",
+    "description": "Large investments made by companies or venture capital in the IaaS sector that can lead to expansion, innovation, or increased competition within the market.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Regulatory Changes",
+    "description": "Changes in regulations or legislation that affect data privacy, cloud services, and technology compliance, impacting how IaaS providers operate.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 20.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Supply Chain News",
+    "description": "Updates regarding the supply chain for hardware and software components needed for IaaS services, including shortages or disruptions that affect service delivery.",
+    "growth_constraint_min": -15.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Corporate Actions",
+    "description": "Mergers, acquisitions, partnerships, and other corporate strategies undertaken by IaaS providers that could reshape market dynamics and capabilities.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 25.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Technological Advancements",
+    "description": "Innovations in cloud computing, virtualization, and related technologies that enhance the capabilities and efficiency of IaaS offerings.",
+    "growth_constraint_min": 5.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Market Competition",
+    "description": "Changes in the competitive landscape, including new entrants, pricing strategies, and service differentiation that can drive market dynamics.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 20.0,
+    "importance": "medium",
+    "ma_window_days": 14
+  },
+  {
+    "name": "Customer Demand Trends",
+    "description": "Shifts in customer preferences or demands for cloud services, including increased adoption rates or changing service requirements.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Environmental Factors",
+    "description": "Impact of sustainability initiatives and environmental regulations on the operations of IaaS providers and their service offerings.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Neutral/Noise",
+    "description": "Headlines that are relevant to the IaaS market but do not have any material impact on growth forecasts or market dynamics.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 0.0,
+    "importance": "medium",
+    "ma_window_days": 0
+  }
+]

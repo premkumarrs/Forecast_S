@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Geopolitical Events",
+    "description": "Major international developments that can impact the machine learning market, such as conflicts, trade agreements, or diplomatic relations.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Strategic Investments",
+    "description": "Significant investments made by companies or venture capitalists in machine learning startups or initiatives that can drive market growth.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Regulatory Changes",
+    "description": "New laws, regulations, or policies that affect the machine learning industry, including data privacy and AI ethics legislation.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 20.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Supply Chain News",
+    "description": "Developments regarding the supply chain for machine learning technologies, including hardware availability and software accessibility.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 25.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Corporate Actions",
+    "description": "Mergers, acquisitions, partnerships, and other corporate strategies that can influence the competitive landscape of the machine learning market.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Technological Advancements",
+    "description": "Innovations and breakthroughs in machine learning algorithms, infrastructure, and tools that can enhance performance and market adoption.",
+    "growth_constraint_min": 5.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Industry Adoption Trends",
+    "description": "Trends indicating how various industries are integrating machine learning technologies, affecting market growth and revenue generation.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Consumer Demand Shifts",
+    "description": "Changes in consumer preferences and demand for machine learning-powered products and services, impacting revenue growth.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 30.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Competitive Landscape",
+    "description": "News relating to the activities and strategies of key players in the machine learning market that may influence market dynamics.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 25.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Neutral/Noise",
+    "description": "Headlines that are relevant to the machine learning sector but have no measurable impact on growth or market dynamics.",
+    "growth_constraint_min": 0.0,
+    "growth_constraint_max": 0.0,
+    "importance": "medium",
+    "ma_window_days": 0
+  }
+]

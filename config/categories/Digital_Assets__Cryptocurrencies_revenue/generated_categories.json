@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Regulatory Changes",
+    "description": "News related to new laws, regulations, government policies, or enforcement actions impacting the cryptocurrency market, including bans, approvals, taxation, and compliance requirements.",
+    "growth_constraint_min": -15.0,
+    "growth_constraint_max": 25.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Technological Advancements",
+    "description": "Headlines detailing breakthroughs in blockchain technology, new protocol developments, scalability solutions, upgrades (e.g., Ethereum's Merge), and innovations in smart contracts or decentralized applications (dApps).",
+    "growth_constraint_min": 5.0,
+    "growth_constraint_max": 35.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Macroeconomic Factors",
+    "description": "News concerning broader economic trends such as inflation rates, interest rate changes, monetary policy, currency devaluations, and global economic stability that could influence investor sentiment towards digital assets.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 20.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Institutional Adoption",
+    "description": "Reports on major financial institutions, corporations, or governments investing in, adopting, or offering cryptocurrency-related services, products, or infrastructure.",
+    "growth_constraint_min": 10.0,
+    "growth_constraint_max": 40.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Security Breaches & Exploits",
+    "description": "News about hacks, theft of digital assets from exchanges or wallets, smart contract vulnerabilities, and other security incidents that undermine trust and confidence in the ecosystem.",
+    "growth_constraint_min": -20.0,
+    "growth_constraint_max": -5.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "New Project Launches & ICOs/IDOs",
+    "description": "Announcements of new cryptocurrency projects, initial coin offerings (ICOs), initial DEX offerings (IDOs), or significant token generation events that introduce new supply or demand dynamics.",
+    "growth_constraint_min": 2.0,
+    "growth_constraint_max": 28.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Market Sentiment & FUD/FOMO",
+    "description": "Headlines reflecting prevailing market sentiment, including fear, uncertainty, and doubt (FUD) or fear of missing out (FOMO), often driven by social media trends, influencer opinions, or speculative news.",
+    "growth_constraint_min": -18.0,
+    "growth_constraint_max": 22.0,
+    "importance": "medium",
+    "ma_window_days": 14
+  },
+  {
+    "name": "Partnerships & Collaborations",
+    "description": "News detailing strategic alliances, joint ventures, or partnerships between cryptocurrency projects, companies, or different sectors that aim to expand utility or market reach.",
+    "growth_constraint_min": 3.0,
+    "growth_constraint_max": 25.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Geopolitical Events",
+    "description": "Significant global events such as wars, political instability, international sanctions, or major policy shifts in key countries that could affect risk appetite and capital flows into digital assets.",
+    "growth_constraint_min": -12.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Neutral/Noise",
+    "description": "Headlines that are tangentially related to the digital asset market or cryptocurrencies but have no discernible material impact on revenue growth or investor sentiment.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 0
+  }
+]

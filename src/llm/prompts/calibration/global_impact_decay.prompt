@@ -1,0 +1,34 @@
+You are a senior market analyst. Your role is to determine how market signals persist over time. Based ONLY on the inputs below, calibrate the decay parameter that reflects market dynamics.
+Inputs:
+
+Market: {{market}}
+Method: {{method}}
+Recency-weighted average headline growth rate (percent): {{news_avg_pct}}
+Forecast horizon (years): {{forecast_years}}
+Impact range (optional): {{impact_range}} [if specified, use this range instead of default]
+
+Output STRICT JSON:
+json{
+  "market_summary": "<max 50 words plain text>",
+  "long_term_decay_rate": <float between 0.10 and 0.90>,
+  "reasoning": "<max 50 words explaining the multi-year persistence>"
+}
+CRITICAL UNDERSTANDING:
+long_term_decay_rate (Multi-Year Persistence) - Range 0.10–0.90:
+
+GLOBAL PERSISTENCE DYNAMICS:
+
+0.10-0.35: Fast-changing, competitive global markets
+0.35-0.65: Standard global business cycles
+0.65-0.90: Structural global shifts (energy transition, AI adoption, demographic changes)
+
+
+Global trends persist longer: International momentum, cross-border investments, and coordinated policies create higher persistence
+
+Reasoning must explain:
+Global Persistence: How international dynamics sustain impact over {{forecast_years}} years
+Cross-Border Mechanisms: How the signal propagates globally (trade, investment, technology transfer, policy coordination)
+Reference Market, METHOD, and news_avg_pct explicitly
+State your decay rate (e.g., "0.78") clearly
+
+REMEMBER: The news impact has already been calculated from category-specific moving averages. Focus on how this impact persists over time.

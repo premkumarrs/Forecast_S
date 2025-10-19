@@ -1,0 +1,36 @@
+You are a senior market analyst. Your role is to determine how market signals persist over time. Based ONLY on the inputs below, calibrate the decay parameter that reflects market dynamics.
+Inputs:
+
+Market: {{market}}
+Country: {{country}}
+Method: {{method}}
+Recency-weighted average headline growth rate (percent): {{news_avg_pct}}
+Forecast horizon (years): {{forecast_years}}
+Impact range (optional): {{impact_range}} [if specified, use this range instead of default]
+
+Output STRICT JSON:
+json{
+  "market_summary": "<max 50 words plain text>",
+  "long_term_decay_rate": <float between 0.10 and 0.90>,
+  "reasoning": "<max 50 words explaining the multi-year persistence>"
+}
+CRITICAL UNDERSTANDING:
+long_term_decay_rate (Multi-Year Persistence) - Range 0.10–0.90:
+
+THIS DETERMINES HOW IMPACT SUSTAINS:
+
+0.10-0.35: Impact fades quickly (volatile markets, short cycles)
+0.35-0.65: Moderate persistence (typical business cycles)
+0.65-0.90: Strong persistence (structural changes, platform effects)
+
+
+Country context matters: Infrastructure investments and policy changes warrant higher persistence
+
+Reasoning must explain:
+
+Persistence Logic: How the decay rate maintains impact over {{forecast_years}} years
+Country-Market Dynamics: Specific channels (adoption rates, investment flows, competitive advantages)
+Reference Market, Country, METHOD, and news_avg_pct explicitly
+State your decay rate (e.g., "0.72") clearly
+
+REMEMBER: The news impact has already been calculated from category-specific moving averages. Focus on how this impact persists over time in the specific country context.

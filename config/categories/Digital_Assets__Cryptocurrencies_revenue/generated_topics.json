@@ -1,0 +1,42 @@
+[
+  {
+    "topic": "Cryptocurrency",
+    "active": true
+  },
+  {
+    "topic": "Blockchain",
+    "active": true
+  },
+  {
+    "topic": "Bitcoin",
+    "active": false
+  },
+  {
+    "topic": "Ethereum",
+    "active": true
+  },
+  {
+    "topic": "DeFi",
+    "active": true
+  },
+  {
+    "topic": "NFTs",
+    "active": false
+  },
+  {
+    "topic": "Regulation",
+    "active": false
+  },
+  {
+    "topic": "Mining",
+    "active": false
+  },
+  {
+    "topic": "Exchange",
+    "active": true
+  },
+  {
+    "topic": "Adoption",
+    "active": true
+  }
+]

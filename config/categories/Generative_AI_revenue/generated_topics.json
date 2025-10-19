@@ -1,0 +1,50 @@
+[
+  {
+    "topic": "Generative AI",
+    "active": true
+  },
+  {
+    "topic": "Artificial Intelligence",
+    "active": true
+  },
+  {
+    "topic": "AI Revenue",
+    "active": false
+  },
+  {
+    "topic": "Machine Learning",
+    "active": false
+  },
+  {
+    "topic": "OpenAI",
+    "active": false
+  },
+  {
+    "topic": "ChatGPT",
+    "active": false
+  },
+  {
+    "topic": "Investment",
+    "active": false
+  },
+  {
+    "topic": "Gemini",
+    "active": false
+  },
+  {
+    "topic": "Data Center",
+    "active": false
+  },
+  {
+    "topic": "Anthropic",
+    "active": false
+  },
+  {
+    "topic": "Meta",
+    "active": false
+  },
+  {
+    "topic": "Nvidia",
+    "active": false
+  }
+]

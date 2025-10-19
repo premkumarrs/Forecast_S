@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Technological Advancements",
+    "description": "Headlines detailing breakthroughs in Generative AI models (e.g., new architectures, improved performance metrics, novel applications), significant R&D investments, or the release of groundbreaking AI tools and platforms that could accelerate adoption and revenue.",
+    "growth_constraint_min": 5.0,
+    "growth_constraint_max": 35.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Enterprise Adoption & Use Cases",
+    "description": "News focusing on large-scale adoption of Generative AI by enterprises across various industries, the development of specific revenue-generating use cases (e.g., AI-powered content creation, code generation, customer service automation), and successful pilot programs transitioning to production.",
+    "growth_constraint_min": 7.0,
+    "growth_constraint_max": 40.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Funding & Investments",
+    "description": "Announcements related to significant venture capital funding rounds, strategic investments, M&A activities, and IPOs of Generative AI companies, indicating market confidence and potential for growth.",
+    "growth_constraint_min": 3.0,
+    "growth_constraint_max": 25.0,
+    "importance": "medium",
+    "ma_window_days": 45
+  },
+  {
+    "name": "Regulatory & Policy Developments",
+    "description": "News concerning government regulations, policy changes, ethical guidelines, or legal challenges impacting the development, deployment, and monetization of Generative AI technologies globally.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 5.0,
+    "importance": "medium",
+    "ma_window_days": 60
+  },
+  {
+    "name": "Talent & Workforce",
+    "description": "Headlines related to the availability of skilled AI talent, shifts in the job market due to AI automation, training initiatives, and the impact of talent shortages or surpluses on the Generative AI ecosystem.",
+    "growth_constraint_min": -2.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Hardware & Infrastructure",
+    "description": "News regarding advancements or supply constraints in AI-specific hardware (e.g., GPUs, TPUs), cloud computing infrastructure, and data center capacity, which are critical enablers for Generative AI.",
+    "growth_constraint_min": 2.0,
+    "growth_constraint_max": 20.0,
+    "importance": "medium",
+    "ma_window_days": 60
+  },
+  {
+    "name": "Ethical Concerns & Societal Impact",
+    "description": "Reports on ethical dilemmas, potential misuse of Generative AI (e.g., misinformation, bias), and broader societal impacts that could lead to public backlash, calls for stricter controls, or shifts in consumer/business sentiment.",
+    "growth_constraint_min": -8.0,
+    "growth_constraint_max": 3.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Partnerships & Alliances",
+    "description": "Announcements of strategic partnerships, collaborations, and alliances between Generative AI companies, technology providers, and industry players that could unlock new revenue streams or market access.",
+    "growth_constraint_min": 1.0,
+    "growth_constraint_max": 15.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Geopolitical Events",
+    "description": "Significant global political events, trade disputes, or international relations shifts that could impact AI development, cross-border data flows, market access, or the competitive landscape for Generative AI.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 30
+  },
+  {
+    "name": "Neutral/Noise",
+    "description": "Headlines that are tangentially related to Generative AI but have no discernible material impact on its revenue growth trajectory. This includes general AI news without specific monetization implications, minor product updates, or opinion pieces lacking concrete data.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": 10.0,
+    "importance": "medium",
+    "ma_window_days": 0
+  }
+]

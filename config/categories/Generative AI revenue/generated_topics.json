@@ -1,0 +1,42 @@
+[
+  {
+    "topic": "Generative AI",
+    "active": true
+  },
+  {
+    "topic": "Artificial Intelligence",
+    "active": false
+  },
+  {
+    "topic": "Large Language Models",
+    "active": true
+  },
+  {
+    "topic": "AI Companies",
+    "active": false
+  },
+  {
+    "topic": "AI Investment",
+    "active": false
+  },
+  {
+    "topic": "AI Revenue",
+    "active": false
+  },
+  {
+    "topic": "AI Market",
+    "active": false
+  },
+  {
+    "topic": "AI Technology",
+    "active": false
+  },
+  {
+    "topic": "AI Chips",
+    "active": false
+  },
+  {
+    "topic": "AI Regulation",
+    "active": false
+  }
+]

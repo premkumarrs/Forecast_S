@@ -1,0 +1,104 @@
+[
+  {
+    "name": "Strategic Investment",
+    "description": "Covers major, proactive spending to fuel growth. Examples: Announcing a new factory, a multi-year R&D program, or a significant infrastructure upgrade.",
+    "growth_constraint_min": 2.0,
+    "growth_constraint_max": 15.0
+  },
+  {
+    "name": "Technological Breakthrough",
+    "description": "A fundamental, game-changing innovation is announced or achieved. Examples: A new type of battery, a revolutionary AI model, a new drug discovery.",
+    "growth_constraint_min": 3.0,
+    "growth_constraint_max": 20.0
+  },
+  {
+    "name": "New Trend Adoption",
+    "description": "Clear evidence that a new market trend, customer behavior, or product category is gaining significant traction and becoming mainstream.",
+    "growth_constraint_min": 1.0,
+    "growth_constraint_max": 12.0
+  },
+  {
+    "name": "Demand Slump / Trend Obsolescence",
+    "description": "Clear evidence of falling customer demand, or a market trend becoming outdated or replaced by something new.",
+    "growth_constraint_min": -10.0,
+    "growth_constraint_max": -1.0
+  },
+  {
+    "name": "Geopolitical Tension",
+    "description": "Negative international events. Examples: New tariffs, trade bans, international political instability, or conflicts affecting the market.",
+    "growth_constraint_min": -8.0,
+    "growth_constraint_max": -0.5
+  },
+  {
+    "name": "Geopolitical Cooperation",
+    "description": "Positive international events. Examples: A new trade deal is signed, tariffs are lifted, or international standards are agreed upon.",
+    "growth_constraint_min": 0.5,
+    "growth_constraint_max": 8.0
+  },
+  {
+    "name": "Regulatory Headwind",
+    "description": "Government or legal actions that negatively impact the business. Examples: An antitrust lawsuit, new compliance costs, or a product ban.",
+    "growth_constraint_min": -7.0,
+    "growth_constraint_max": -0.5
+  },
+  {
+    "name": "Regulatory Tailwind",
+    "description": "Government or legal actions that positively impact the business. Examples: Deregulation, new industry subsidies, or winning a major patent lawsuit.",
+    "growth_constraint_min": 1.0,
+    "growth_constraint_max": 10.0
+  },
+  {
+    "name": "Supply Chain Boost",
+    "description": "Positive, operational news about the supply chain. Examples: A key raw material becomes cheaper, a new efficient supplier is secured.",
+    "growth_constraint_min": 0.5,
+    "growth_constraint_max": 5.0
+  },
+  {
+    "name": "Supply Chain Disruption",
+    "description": "Negative, operational news about the supply chain. Examples: A factory fire, a port strike, a key supplier going bankrupt.",
+    "growth_constraint_min": -6.0,
+    "growth_constraint_max": -0.5
+  },
+  {
+    "name": "Competitive Pressure",
+    "description": "Actions by competitors that negatively impact the company. Examples: A rival launches a superior product, a price war begins.",
+    "growth_constraint_min": -5.0,
+    "growth_constraint_max": -0.5
+  },
+  {
+    "name": "Corporate Milestone",
+    "description": "Significant positive company-specific news. Examples: Record-breaking profits, a highly successful product launch, major awards.",
+    "growth_constraint_min": 0.5,
+    "growth_constraint_max": 6.0
+  },
+  {
+    "name": "Corporate Setback",
+    "description": "Significant negative company-specific news. Examples: A major product recall, poor earnings, a leadership crisis or scandal.",
+    "growth_constraint_min": -6.0,
+    "growth_constraint_max": -0.5
+  },
+  {
+    "name": "Security Event",
+    "description": "News related to cybersecurity. Examples: A major data breach, a newly discovered vulnerability in a core product.",
+    "growth_constraint_min": -4.0,
+    "growth_constraint_max": -0.5
+  },
+  {
+    "name": "Mergers & Acquisitions",
+    "description": "News about a company being acquired or merging with another major player. The impact can be positive or negative depending on the context.",
+    "growth_constraint_min": -3.0,
+    "growth_constraint_max": 8.0
+  },
+  {
+    "name": "Market Volatility",
+    "description": "News that increases overall market uncertainty, without a clear positive or negative direction. Examples: Interest rate speculation, currency fluctuations.",
+    "growth_constraint_min": -2.0,
+    "growth_constraint_max": 2.0
+  },
+  {
+    "name": "Neutral/Noise",
+    "description": "The news is relevant to the market but is not expected to have a material impact on the forecast.",
+    "growth_constraint_min": 0,
+    "growth_constraint_max": 0
+  }
+]

@@ -1,0 +1,16 @@
+streamlit
+pandas
+numpy
+sqlalchemy
+pmdarima
+scikit-learn
+altair
+python-dotenv
+plotly
+requests
+statsmodels
+scipy
+pymysql
+gdeltdoc
+openai>=1.56.0
+openpyxl
