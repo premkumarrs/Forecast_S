@@ -58,7 +58,9 @@ class BaseForecaster(ABC):
             return pd.DataFrame(columns=['year', 'value_hat', 'type'])
         
         # Filter historical data
-        hist_data = historical_data[historical_data['year'] <= hist_cutoff].copy()
+        # Models read the series positionally (last value, trend order), so
+        # the history must be in chronological order before fitting.
+        hist_data = historical_data[historical_data['year'] <= hist_cutoff].sort_values('year').copy()
         forecast_years = list(range(hist_cutoff + 1, forecast_until + 1))
         
         # Fit and forecast
