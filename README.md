@@ -9,12 +9,6 @@ A Streamlit market-forecasting application that combines baseline time-series mo
 indicators and GDELT/LLM news analysis, extended with a leakage-controlled walk-forward evaluation
 framework that measures whether those models and adjustments actually work out of sample.
 
-**Contents:** [Overview](#overview) · [Features](#features) · [Prerequisites](#prerequisites) ·
-[Installation](#installation) · [Quick Start](#quick-start) ·
-[Repository Structure](#repository-structure) · [Configuration](#configuration) ·
-[Data Requirements](#data-requirements) · [LLM Integration](#llm-integration) ·
-[Development](#development) · [Troubleshooting](#troubleshooting)
-
 ---
 
 ## Overview
