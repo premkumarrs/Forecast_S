@@ -1,0 +1,86 @@
+{
+  "indicator_key": "us_pce_goods_nominal",
+  "name": "Personal consumption expenditures: Goods (nominal)",
+  "source": "U.S. Bureau of Economic Analysis (BEA), National Income and Product Accounts",
+  "series_code": "DGDSRC",
+  "series_register_entry": {
+    "%SeriesCode": "DGDSRC",
+    "SeriesLabel": "Goods",
+    "MetricName": "Current Dollars",
+    "CalculationType": "Level",
+    "DefaultScale": "-6",
+    "TableId:LineNo": "T10105:3|T10505:3|T20305:2|T20405:2|T20805:2|U20305:2|U20405:2",
+    "SeriesCodeParents": "DPCERC"
+  },
+  "nipa_table": "Table 2.3.5 Personal Consumption Expenditures by Major Type of Product, line 2",
+  "raw_file": {
+    "name": "bea_NipaDataA.txt.gz",
+    "url": "https://apps.bea.gov/national/Release/TXT/NipaDataA.txt",
+    "retrieved_utc": "2026-10-06T15:59:32+00:00",
+    "http_last_modified": "Wed, 30 Sep 2026 12:30:02 GMT",
+    "bytes_as_served": 11967684,
+    "sha256_as_served": "9f8e96bb72181d14d7b555f3e1b09c71e900fb8de4c305dc9217424de4757f27",
+    "stored_gzip": true,
+    "status": "retrieved"
+  },
+  "register_file": {
+    "name": "bea_SeriesRegister.txt",
+    "url": "https://apps.bea.gov/national/Release/TXT/SeriesRegister.txt",
+    "retrieved_utc": "2026-10-06T15:59:35+00:00",
+    "http_last_modified": "Wed, 30 Sep 2026 12:30:02 GMT",
+    "bytes_as_served": 960482,
+    "sha256_as_served": "159175ff182598eaa0b99ac09724b8c0c7844276c52dab0cd946f21c5dc50f6d",
+    "stored_gzip": false,
+    "status": "retrieved"
+  },
+  "crosscheck_file": {
+    "name": "fred_DGDSRC1A027NBEA.csv",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGDSRC1A027NBEA",
+    "retrieved_utc": "2026-10-06T15:59:38+00:00",
+    "http_last_modified": "Wed, 30 Sep 2026 12:55:05 GMT",
+    "bytes_as_served": 1899,
+    "sha256_as_served": "03260275fdaf31ae217049da2ae4494c69b23f41be326fa7e15dc4793538b591",
+    "stored_gzip": false,
+    "status": "retrieved"
+  },
+  "fred_crosscheck": {
+    "years_compared": 97,
+    "max_abs_diff_millions": 0.0
+  },
+  "frequency": "annual",
+  "unit": "millions of current US dollars (nominal, not inflation-adjusted)",
+  "available_years": [
+    1929,
+    2025
+  ],
+  "experiment_years": [
+    1999,
+    2025
+  ],
+  "experiment_start_year_rationale": "1999 (fixed before running the experiment) so year-over-year growth exists from 2000, the target's first year.",
+  "revisions": "BEA revises NIPA annually (annual update each September; the 2026 update was published 2026-09-30, matching the file's Last-Modified) and restates history in comprehensive updates.",
+  "vintage_caveat": "Current-vintage historical data: values are the latest revised estimates, not the figures available at each historical origin. The experiment is a current-vintage historical walk-forward evaluation, not a true real-time vintage backtest.",
+  "point_in_time_treatment": "Effective information year = observation year. BEA's first annual estimate for year Y is published in late January of Y+1, the same timing as the Census target's Q4; both are treated as known at origin Y. The backtest passes only rows with year <= origin to IndicatorAdjustment.",
+  "transformations": [
+    "selected series DGDSRC from NipaDataA.txt",
+    "removed thousands separators; values kept in millions of dollars",
+    "kept years >= 1999",
+    "no interpolation, no imputation, no lag"
+  ],
+  "validation": {
+    "label_is_Goods": true,
+    "metric_is_current_dollars": true,
+    "calculation_is_level": true,
+    "scale_is_millions": true,
+    "on_NIPA_table_2_3_5_line_2": true,
+    "parent_is_total_PCE_DPCERC": true,
+    "annual": true,
+    "no_duplicate_years": true,
+    "no_gaps": true,
+    "all_finite": true,
+    "all_positive": true,
+    "covers_start_year": true,
+    "covers_required_origins_through_2022": true,
+    "matches_fred_copy": true
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "dataset_name": "U.S. Census Bureau annual retail e-commerce sales",
+  "data_label": "REAL / CURRENT-VINTAGE",
+  "is_synthetic": false,
+  "source": "U.S. Census Bureau Quarterly E-Commerce Report",
+  "source_page": "https://www.census.gov/retail/ecommerce.html",
+  "source_vintage": {
+    "tsnotadjustedsales.xlsx": "August 18, 2026",
+    "tsadjustedsales.xlsx": "August 18, 2026"
+  },
+  "current_vintage_status": "The experiment uses the currently available/revised Census historical series. Values are therefore not necessarily identical to the information that would have been available to a forecaster at each historical origin.",
+  "dataset_file": "data/evaluation/us_census_ecommerce_annual.csv",
+  "dataset_unit": "millions of US dollars (current prices)",
+  "dataset_aggregation": "sum of Q1-Q4 not seasonally adjusted quarterly e-commerce sales",
+  "n_observations": 26,
+  "first_year": 2000,
+  "last_year": 2025,
+  "dataset_validation": {
+    "n_observations_is_26": true,
+    "years_2000_to_2025": true,
+    "no_missing_years": true,
+    "no_duplicate_years": true,
+    "no_missing_values": true,
+    "all_values_finite": true,
+    "all_values_non_negative": true,
+    "is_synthetic_false": true
+  },
+  "models": [
+    "Naive (last value)",
+    "3-yr CAGR",
+    "Damped ETS",
+    "Logistic Growth"
+  ],
+  "min_train_years": 5,
+  "horizon": 3,
+  "evaluated_horizons": [
+    1,
+    2,
+    3
+  ],
+  "step": 1,
+  "n_folds": 19,
+  "origins": [
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022
+  ],
+  "min_coverage_for_best": 80.0,
+  "run_timestamp": "2026-10-06T15:50:04+00:00",
+  "input_fingerprint": "2396b8c2010b982cf5ceda80e5c2d9184f7ac6cf91a9dc03b283284a82030e3a",
+  "methodology_notes": [
+    "Expanding-window walk-forward backtest; each fold trains on years <= origin and forecasts origin+1..origin+horizon. Only folds with a complete test horizon are used.",
+    "All models are evaluated on exactly the same origins and target years.",
+    "Annual value = sum of Q1-Q4 not seasonally adjusted quarterly e-commerce sales (millions of current US dollars).",
+    "The experiment uses the currently available/revised Census historical series. Values are therefore not necessarily identical to the information that would have been available to a forecaster at each historical origin.",
+    "Historical analyzed-news data sufficient for a comparable long-horizon experiment is unavailable; therefore the news-adjusted variant is excluded from the real-data results.",
+    "Indicators are not evaluated in this experiment.",
+    "Pooled metrics use every valid forecast; fold-mean metrics average per-fold metrics. Improvements vs naive are paired on identical (origin, target year) forecasts.",
+    "No composite score and no statistical significance testing are used.",
+    "2020 (pandemic jump) is kept in the data; target-year/period tables are descriptive only."
+  ],
+  "limitations": [
+    "News variant not evaluated (no historical news data supplied).",
+    "Indicator variant not evaluated (no indicator data supplied)."
+  ],
+  "files": [
+    "breakdown_by_target_period.csv",
+    "breakdown_by_target_year.csv",
+    "comparison_report_fold_mean.json",
+    "comparison_report_pooled.json",
+    "experiment_result.json",
+    "failures.csv",
+    "improvements.csv",
+    "records.csv",
+    "summaries.csv",
+    "experiment_metadata.json"
+  ]
+}

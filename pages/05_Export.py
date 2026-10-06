@@ -6,11 +6,16 @@ import streamlit as st
 import pandas as pd
 import io
 from pages.helpers import build_market_wide_table, build_news_export
+from pages.components.evaluation import load_artifacts, render_evaluation_downloads
 
 
 st.set_page_config(page_title="Export — Minimal", page_icon="📤", layout="wide")
 
 st.title("📤 Export Forecast Results — Minimal")
+
+with st.expander("📐 Model evaluation results (stored, independent of the current forecast run)"):
+    render_evaluation_downloads(load_artifacts(), key_prefix="export_page")
+    st.caption("Saved outputs of the Census walk-forward evaluation. See the Model Evaluation page.")
 
 # Preconditions
 if 'forecast_result' not in st.session_state or not st.session_state.get('forecast_result'):

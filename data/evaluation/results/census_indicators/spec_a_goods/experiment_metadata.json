@@ -1,0 +1,80 @@
+{
+  "specification": "spec_a_goods",
+  "dataset_name": "U.S. Census Bureau annual retail e-commerce sales",
+  "data_label": "REAL / CURRENT-VINTAGE",
+  "is_synthetic": false,
+  "source": "U.S. Census Bureau Quarterly E-Commerce Report",
+  "current_vintage_status": "The experiment uses the currently available/revised Census historical series. Values are therefore not necessarily identical to the information that would have been available to a forecaster at each historical origin.",
+  "n_observations": 26,
+  "dataset_validation": {
+    "n_observations_is_26": true,
+    "years_2000_to_2025": true,
+    "no_missing_years": true,
+    "no_duplicate_years": true,
+    "no_missing_values": true,
+    "all_values_finite": true,
+    "all_values_non_negative": true,
+    "is_synthetic_false": true
+  },
+  "models": [
+    "Naive (last value)",
+    "3-yr CAGR",
+    "Damped ETS",
+    "Logistic Growth"
+  ],
+  "min_train_years": 5,
+  "horizon": 3,
+  "step": 1,
+  "n_folds": 19,
+  "origins": [
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022
+  ],
+  "indicator_weights": {
+    "us_pce_goods_nominal": 1.0
+  },
+  "overall_indicator_weight": 0.3,
+  "indicator_files": [
+    "data/evaluation/indicators/us_pce_goods_annual.csv",
+    "data/evaluation/indicators/us_pce_goods_provenance.json"
+  ],
+  "indicator_fingerprint": "f5e869d6b323f78f2c1803457548e5e859e9842bad2ae5c1aaf740b7d33d370c",
+  "target_fingerprint": "2396b8c2010b982cf5ceda80e5c2d9184f7ac6cf91a9dc03b283284a82030e3a",
+  "baseline_reproduces_census_baseline_run": {
+    "rows_compared": 228,
+    "rows_expected": 228,
+    "max_abs_prediction_diff": 2.3283064365386963e-10,
+    "identical_within_csv_roundtrip_rtol_1e-12": true
+  },
+  "mean_adjustment_factor": 1.0109462612525915,
+  "run_timestamp": "2026-10-06T16:02:28+00:00",
+  "methodology_notes": [
+    "Current-vintage historical walk-forward evaluation, not a true real-time vintage backtest: the Census target and the BEA indicator are the latest revised series.",
+    "For origin Y the market training data and the indicator data passed to the unchanged production IndicatorAdjustment are restricted to year <= Y.",
+    "Indicator weights and the overall indicator weight (0.3) were fixed before the run and not tuned.",
+    "IndicatorAdjustment applies one multiplicative factor (1 + 0.3 x average yearly weighted indicator growth, capped at +/-30% before weighting) to every forecast year of a fold.",
+    "Effects are paired comparisons of the adjusted variant against the same model's baseline on identical forecasts. No composite score and no significance testing.",
+    "The constant-uplift diagnostic applies the full-sample mean adjustment factor to every baseline forecast; it is NOT point-in-time and is used only to judge whether the indicator's variation across origins adds anything beyond a fixed level shift.",
+    "News is disabled. 2020 is kept; period tables are descriptive only."
+  ],
+  "limitations": [
+    "News variant not evaluated (no historical news data supplied)."
+  ]
+}

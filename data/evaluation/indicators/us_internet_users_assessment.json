@@ -1,0 +1,115 @@
+{
+  "indicator": "Individuals using the Internet (% of population), United States",
+  "series_code": "IT.NET.USER.ZS",
+  "source": "World Bank World Development Indicators, from the ITU World Telecommunication/ICT Indicators Database",
+  "source_url": "https://data.worldbank.org/indicator/IT.NET.USER.ZS?locations=US",
+  "raw_files": {
+    "worldbank_IT.NET.USER.ZS_USA.json": {
+      "url": "https://api.worldbank.org/v2/country/USA/indicator/IT.NET.USER.ZS?format=json&per_page=200",
+      "retrieved_utc": "2026-10-06T15:59:37+00:00",
+      "http_last_modified": "Tue, 06 Oct 2026 15:56:52 GMT",
+      "bytes_as_served": 15576,
+      "sha256_as_served": "6129f2096cf53434939a2839f60d841b0bbd12c10ef59cf10d66746cf41051be",
+      "stored_gzip": false,
+      "status": "retrieved"
+    },
+    "worldbank_IT.NET.USER.ZS_USA_footnotes.json": {
+      "url": "https://api.worldbank.org/v2/country/USA/indicator/IT.NET.USER.ZS?format=json&per_page=200&footnote=y",
+      "retrieved_utc": "2026-10-06T15:59:37+00:00",
+      "http_last_modified": "Tue, 06 Oct 2026 15:58:47 GMT",
+      "bytes_as_served": 17846,
+      "sha256_as_served": "e4e1536a16f61705d9d327c2de382ed47e404184974aa6daab82b68035eb7ea7",
+      "stored_gzip": false,
+      "status": "retrieved"
+    },
+    "worldbank_IT.NET.USER.ZS_metadata.json": {
+      "url": "https://api.worldbank.org/v2/sources/2/series/IT.NET.USER.ZS/metadata?format=json",
+      "retrieved_utc": "2026-10-06T15:59:38+00:00",
+      "http_last_modified": "Tue, 06 Oct 2026 13:34:44 GMT",
+      "bytes_as_served": 4744,
+      "sha256_as_served": "966c74f1028cd0550450edf2d59d76307fd97fc63b0fbd6c14a3eac4cd1989b5",
+      "stored_gzip": false,
+      "status": "retrieved"
+    }
+  },
+  "world_bank_last_updated": "2026-07-13",
+  "frequency": "annual",
+  "unit": "% of population",
+  "available_years": [
+    1998,
+    2024
+  ],
+  "required_observation_years_with_lag": [
+    1998,
+    2021
+  ],
+  "missing_in_required_years": 0,
+  "inspection_rules": {
+    "max_decline_pp": 1.0,
+    "max_jump_pp": 8.0,
+    "source_change_in_required_years": "fails"
+  },
+  "flagged_years": [
+    {
+      "year": 2002,
+      "value": 58.7854038836952,
+      "change_pp": 9.704572294000101,
+      "flag": "jump",
+      "source_label": "ITU estimate"
+    },
+    {
+      "year": 2009,
+      "value": 71.0,
+      "change_pp": -3.0,
+      "flag": "decline",
+      "source_label": "Federal Communications Commission"
+    },
+    {
+      "year": 2011,
+      "value": 69.7294607619268,
+      "change_pp": -1.9605392380731956,
+      "flag": "decline",
+      "source_label": "US Census Bureau"
+    },
+    {
+      "year": 2013,
+      "value": 71.4,
+      "change_pp": -3.299999999999997,
+      "flag": "decline",
+      "source_label": "US Census Bureau"
+    },
+    {
+      "year": 2016,
+      "value": 85.5444212887222,
+      "change_pp": 10.990218842446112,
+      "flag": "jump",
+      "source_label": "US Census Bureau"
+    }
+  ],
+  "source_changes": [
+    {
+      "year": 2007,
+      "source_label": "Federal Communications Commission"
+    },
+    {
+      "year": 2011,
+      "source_label": "US Census Bureau"
+    },
+    {
+      "year": 2014,
+      "source_label": "ITU estimate"
+    },
+    {
+      "year": 2015,
+      "source_label": "US Census Bureau"
+    },
+    {
+      "year": 2020,
+      "source_label": "ITU estimate"
+    }
+  ],
+  "publication_lag": "ITU/World Bank publish year-Y values one to two years after Y. Planned representation: effective_year = observation_year + 1, i.e. the input row labelled year Y holds the observation for Y-1, so the year <= origin filter admits at origin Y only observations through Y-1.",
+  "vintage_caveat": "Current-vintage historical data: values are the latest revised estimates, not the figures available at each historical origin. The experiment is a current-vintage historical walk-forward evaluation, not a true real-time vintage backtest.",
+  "passes_inspection": false,
+  "decision": "EXCLUDED: the series fails the break inspection (documented source/methodology changes and implausible year-to-year declines/jumps), so specification B (goods 0.5 + internet users 0.5) is not run. Decision made before any indicator-adjusted result was computed."
+}

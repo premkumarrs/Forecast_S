@@ -1,0 +1,29 @@
+year,value,footnote,change_pp,source_label,source_changed,flag
+1998,30.1,Source: ITU estimate.,,ITU estimate,False,
+1999,35.8,Source: ITU estimate.,5.699999999999996,ITU estimate,False,
+2000,43.0791626375201,"Source and notes: ITU estimate.,",7.279162637520102,ITU estimate,False,
+2001,49.0808315896951,"Source and notes: ITU estimate.,",6.001668952175002,ITU estimate,False,
+2002,58.7854038836952,"Source and notes: ITU estimate.,",9.704572294000101,ITU estimate,False,jump
+2003,61.6971171244207,"Source and notes: ITU estimate.,",2.911713240725497,ITU estimate,False,
+2004,64.7582564759896,"Source and notes: ITU estimate.,",3.0611393515688974,ITU estimate,False,
+2005,67.9681015,"Source and notes: ITU estimate.,",3.2098450240104057,ITU estimate,False,
+2006,68.93119812,"Source and notes: ITU estimate.,",0.9630966200000017,ITU estimate,False,
+2007,75.0,"Source and notes: Federal Communications Commission,",6.068801879999995,Federal Communications Commission,True,
+2008,74.0,"Source and notes: Federal Communications Commission, Pew Internet Project, ""Internet, Broadband and cell phone statistics,” January 5, 2010, http://www.pewinternet.org/~/media//Files/Reports/2010/PIP_December09_update.pdf.",-1.0,Federal Communications Commission,False,
+2009,71.0,"Source and notes: Federal Communications Commission, Populatio age 3+.",-3.0,Federal Communications Commission,False,decline
+2010,71.69,"Source and notes: Federal Communications Commission,",0.6899999999999977,Federal Communications Commission,False,
+2011,69.7294607619268,"Source and notes: United States Census Bureau,",-1.9605392380731956,US Census Bureau,True,decline
+2012,74.7,"Source and notes: US Census Bureau,",4.970539238073201,US Census Bureau,False,
+2013,71.4,"Source and notes: US Census Bureau,",-3.299999999999997,US Census Bureau,False,decline
+2014,73.0,"Source and notes: ITU estimate.,",1.5999999999999943,ITU estimate,True,
+2015,74.5542024462761,"Source and notes: US Census Bureau, Reference period is past six months.",1.5542024462760935,US Census Bureau,True,
+2016,85.5444212887222,"Source and notes: US Census Bureau,",10.990218842446112,US Census Bureau,False,jump
+2017,87.2748891687657,"Source and notes: US Census Bureau,",1.7304678800434914,US Census Bureau,False,
+2018,88.498903165152,"Source and notes: US Census Bureau,",1.2240139963863044,US Census Bureau,False,
+2019,89.4302848575712,"Source and notes: US Census Bureau,",0.931381692419194,US Census Bureau,False,
+2020,90.34470367,"Source and notes: ITU estimate.,",0.9144188124288064,ITU estimate,True,
+2021,91.2684021,"Source and notes: ITU estimate.,",0.9236984300000017,ITU estimate,False,
+2022,92.72850037,"Source and notes: ITU estimate.,",1.4600982700000031,ITU estimate,False,
+2023,93.52559662,"Source and notes: Gallup World Poll (estimate).,",0.7970962499999956,Gallup World Poll (estimate),True,
+2024,94.69380188,,1.1682052599999935,,True,
+2025,,,,,False,missing

@@ -1,0 +1,65 @@
+{
+  "bea_NipaDataA.txt.gz": {
+    "url": "https://apps.bea.gov/national/Release/TXT/NipaDataA.txt",
+    "retrieved_utc": "2026-10-06T15:59:32+00:00",
+    "http_last_modified": "Wed, 30 Sep 2026 12:30:02 GMT",
+    "bytes_as_served": 11967684,
+    "sha256_as_served": "9f8e96bb72181d14d7b555f3e1b09c71e900fb8de4c305dc9217424de4757f27",
+    "stored_gzip": true,
+    "status": "retrieved"
+  },
+  "bea_SeriesRegister.txt": {
+    "url": "https://apps.bea.gov/national/Release/TXT/SeriesRegister.txt",
+    "retrieved_utc": "2026-10-06T15:59:35+00:00",
+    "http_last_modified": "Wed, 30 Sep 2026 12:30:02 GMT",
+    "bytes_as_served": 960482,
+    "sha256_as_served": "159175ff182598eaa0b99ac09724b8c0c7844276c52dab0cd946f21c5dc50f6d",
+    "stored_gzip": false,
+    "status": "retrieved"
+  },
+  "bea_TablesRegister.txt": {
+    "url": "https://apps.bea.gov/national/Release/TXT/TablesRegister.txt",
+    "retrieved_utc": "2026-10-06T15:59:37+00:00",
+    "http_last_modified": "Wed, 30 Sep 2026 12:30:02 GMT",
+    "bytes_as_served": 29770,
+    "sha256_as_served": "f4242d561e9349df07cab6aaf4474a2f520d6eef9a7d1d6f20579c0c20f224e3",
+    "stored_gzip": false,
+    "status": "retrieved"
+  },
+  "worldbank_IT.NET.USER.ZS_USA.json": {
+    "url": "https://api.worldbank.org/v2/country/USA/indicator/IT.NET.USER.ZS?format=json&per_page=200",
+    "retrieved_utc": "2026-10-06T15:59:37+00:00",
+    "http_last_modified": "Tue, 06 Oct 2026 15:56:52 GMT",
+    "bytes_as_served": 15576,
+    "sha256_as_served": "6129f2096cf53434939a2839f60d841b0bbd12c10ef59cf10d66746cf41051be",
+    "stored_gzip": false,
+    "status": "retrieved"
+  },
+  "worldbank_IT.NET.USER.ZS_USA_footnotes.json": {
+    "url": "https://api.worldbank.org/v2/country/USA/indicator/IT.NET.USER.ZS?format=json&per_page=200&footnote=y",
+    "retrieved_utc": "2026-10-06T15:59:37+00:00",
+    "http_last_modified": "Tue, 06 Oct 2026 15:58:47 GMT",
+    "bytes_as_served": 17846,
+    "sha256_as_served": "e4e1536a16f61705d9d327c2de382ed47e404184974aa6daab82b68035eb7ea7",
+    "stored_gzip": false,
+    "status": "retrieved"
+  },
+  "worldbank_IT.NET.USER.ZS_metadata.json": {
+    "url": "https://api.worldbank.org/v2/sources/2/series/IT.NET.USER.ZS/metadata?format=json",
+    "retrieved_utc": "2026-10-06T15:59:38+00:00",
+    "http_last_modified": "Tue, 06 Oct 2026 13:34:44 GMT",
+    "bytes_as_served": 4744,
+    "sha256_as_served": "966c74f1028cd0550450edf2d59d76307fd97fc63b0fbd6c14a3eac4cd1989b5",
+    "stored_gzip": false,
+    "status": "retrieved"
+  },
+  "fred_DGDSRC1A027NBEA.csv": {
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGDSRC1A027NBEA",
+    "retrieved_utc": "2026-10-06T15:59:38+00:00",
+    "http_last_modified": "Wed, 30 Sep 2026 12:55:05 GMT",
+    "bytes_as_served": 1899,
+    "sha256_as_served": "03260275fdaf31ae217049da2ae4494c69b23f41be326fa7e15dc4793538b591",
+    "stored_gzip": false,
+    "status": "retrieved"
+  }
+}

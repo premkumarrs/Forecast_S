@@ -134,6 +134,10 @@ The application will open in your browser at `http://localhost:8501`
    - Regional insights and country comparisons
    - Export results
 
+6. **Evaluation** (Page 6)
+   - Stored out-of-sample results on real U.S. Census e-commerce data (works offline)
+   - Model comparison by horizon, indicator-adjustment and bias diagnostics, result downloads
+
 ## 📁 Project Structure
 
 ```
@@ -142,6 +146,7 @@ xmi_gdelt_forecasting_framework/
 │   ├── forecasting/             # Forecasting domain
 │   │   ├── adjustment/         # News & indicator adjustments
 │   │   ├── core/              # Core forecasting logic
+│   │   ├── evaluation/        # Walk-forward backtesting, comparison, export, stored-result loading
 │   │   ├── methods/           # Forecasting method implementations
 │   │   │   ├── bottom_up.py
 │   │   │   ├── top_down.py
@@ -196,8 +201,10 @@ xmi_gdelt_forecasting_framework/
 │   ├── 01_Configuration.py
 │   ├── 02_Data_Extraction.py
 │   ├── 03_Forecasting.py
-│   └── 04_Insights.py
+│   ├── 04_Insights.py
+│   └── 06_Evaluation.py       # Stored evaluation results dashboard
 │
+├── scripts/                    # Reproducible dataset builds and evaluation experiments
 ├── config/                     # Configuration files
 │   ├── categories/            # Market category definitions
 │   ├── exclusions.json       # Excluded regions list
@@ -206,7 +213,8 @@ xmi_gdelt_forecasting_framework/
 ├── data/                       # Data storage
 │   ├── raw/                   # Raw uploaded files
 │   ├── processed/             # Processed data cache
-│   └── sample/                # Sample datasets
+│   ├── sample/                # Sample datasets
+│   └── evaluation/            # Census target, indicators, raw official sources, experiment results
 │
 ├── Home.py                    # Application entry point
 ├── requirements.txt           # Python dependencies
@@ -341,6 +349,57 @@ When country-specific news is limited:
 - Batch processing for GDELT queries
 - Rate limiting with random delays
 - Progress tracking for long operations
+
+### Out-of-Sample Evaluation
+`src/forecasting/evaluation/` measures how well the forecasts would have performed on data they never saw:
+- **Walk-forward backtesting** (expanding window) with separate **1-, 2- and 3-year horizons**
+- **3-yr CAGR, Damped ETS and Logistic Growth** compared against a **naive last-value benchmark** on identical folds
+- **Leakage-controlled indicator evaluation** (`indicator_adjusted_past_only`): for origin Y only indicator observations with year ≤ Y reach the unchanged production adjustment
+- **Historical news evaluation infrastructure** (`news_adjusted_historical`): point-in-time retrieval windows and a headline-analysis cache
+- Pooled and fold-mean MAPE/RMSE/MAE/bias, coverage, paired comparisons and CSV/JSON export via `run_comparative_experiment`
+
+```
+Historical data → Point-in-time filtering → Walk-forward folds → Forecast models
+    → Naive benchmark → Metrics → Comparative analysis → Streamlit Evaluation dashboard
+```
+
+**Real-data experiment.** Target: U.S. Census Bureau annual retail e-commerce sales (sum of the four
+not-seasonally-adjusted quarters of the Quarterly E-Commerce Report), 2000–2025, 26 observations,
+19 origins (2004–2022). Indicator: BEA personal consumption expenditures on goods (nominal, series `DGDSRC`).
+
+**Findings** (19 folds per horizon; descriptive, no significance testing):
+- On the Census historical series, Damped ETS achieved the lowest pooled MAPE, while Logistic Growth achieved the lowest pooled RMSE and MAE. All three models beat the naive benchmark on MAPE and MAE at every horizon; no single model is best on every metric.
+- The BEA goods indicator did not provide consistent predictive improvement; observed gains were primarily attributable to bias correction (a near-constant ~1% upward shift that helps only under-forecasting models).
+- Errors concentrate in 2020–2022, and 3-yr CAGR degrades most after the pandemic surge.
+
+**Limitations.** Census and BEA series are current-vintage (revised) data, so this is a current-vintage
+historical walk-forward evaluation, **not** a real-time vintage backtest. Historical analyzed-news data
+sufficient for a comparable long-horizon experiment was unavailable, so news adjustments are not part of
+the real-data results (this is not evidence that news is ineffective). The U.S. internet-users indicator
+was excluded after failing a source/break inspection.
+
+**Dashboard.** The **Evaluation** page (`pages/06_Evaluation.py`) presents the stored results offline
+(no database, GDELT, LLM or network access); the Export page offers the result files for download.
+
+**Reproduce.** Raw official source files are preserved under `data/evaluation/raw/`; experiment results are
+written to `data/evaluation/results/`. From the project root:
+
+```bash
+# Census target: rebuild the annual series from the stored Census workbooks (offline)
+python scripts/build_census_ecommerce_dataset.py
+# Baseline experiment -> data/evaluation/results/census_baseline/
+python scripts/run_census_baseline_experiment.py
+# Indicator sources: re-download BEA/World Bank raw files (network; optional, raw copies are stored)
+python scripts/fetch_indicator_sources.py
+# Indicator inputs and internet-user break assessment -> data/evaluation/indicators/
+python scripts/build_indicator_datasets.py
+# Indicator experiment (needs the baseline results) -> data/evaluation/results/census_indicators/
+python scripts/run_census_indicator_experiment.py
+```
+
+Re-running the experiments reproduces every metric; only `run_timestamp` in the metadata changes.
+See [docs/evaluation.md](docs/evaluation.md) for the full methodology and
+[data/evaluation/README.md](data/evaluation/README.md) for dataset provenance.
 
 ## 🛠️ Development
 

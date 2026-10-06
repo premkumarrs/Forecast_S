@@ -1,0 +1,46 @@
+{
+  "dataset_name": "us_census_ecommerce_annual",
+  "is_synthetic": false,
+  "source": "U.S. Census Bureau Quarterly E-Commerce Report",
+  "source_page": "https://www.census.gov/retail/ecommerce.html",
+  "raw_files": {
+    "tsnotadjustedsales.xlsx": {
+      "url": "https://www.census.gov/retail/mrts/www/data/excel/tsnotadjustedsales.xlsx",
+      "sha256": "59751ad62697e6863b60358484fccb1801a53208668e2e4f316a34e0d0b62b08",
+      "last_revised": "August 18, 2026"
+    },
+    "tsadjustedsales.xlsx": {
+      "url": "https://www.census.gov/retail/mrts/www/data/excel/tsadjustedsales.xlsx",
+      "sha256": "2170ea1a875abb666615c9ae7882a8e8033d17886703aae17c672c5a7d7943c8",
+      "last_revised": "August 18, 2026"
+    }
+  },
+  "retrieval_date": "2026-10-06",
+  "series": "Estimated quarterly U.S. retail e-commerce sales, not seasonally adjusted",
+  "crosscheck_series": "Estimated quarterly U.S. retail e-commerce sales, seasonally adjusted",
+  "original_frequency": "quarterly",
+  "target_frequency": "annual",
+  "unit": "millions of US dollars (current prices)",
+  "aggregation": "sum of Q1-Q4 not seasonally adjusted quarterly e-commerce sales",
+  "official_annual_total_in_source": false,
+  "first_quarter_in_source": "1999Q4",
+  "last_quarter_in_source": "2026Q2",
+  "excluded_incomplete_years": {
+    "1999": 1,
+    "2026": 2
+  },
+  "first_year": 2000,
+  "last_year": 2025,
+  "n_years": 26,
+  "coverage_note": "Estimates include only businesses with paid employees. The April 2025 benchmark restated the entire series (2017 NAICS, employer-only coverage aligned with the Annual Integrated Economic Survey, restated 2022 Annual Retail Trade Survey results); the workbooks contain that restated history, so no vintages are spliced.",
+  "restatement_crosscheck": {
+    "source": "https://www.census.gov/retail/mrts/www/NAICS_Restatement_Summary.pdf",
+    "2022_ecommerce_before_restatement": 1012636,
+    "2022_ecommerce_restated": 997477,
+    "2022_annual_nsa_sum_in_this_dataset": 997477.0
+  },
+  "revision_notice": "Census notice: as of 2026-09-28 the 2Q 2026 report no longer holds the most up-to-date estimates; revised figures are scheduled with the 3Q 2026 release on 2026-11-19. Only 2026 quarters are flagged (p)/(r) in this vintage, and 2026 is excluded as incomplete.",
+  "vintage_statement": "The experiment uses the currently available/revised Census historical series. Values are therefore not necessarily identical to the information that would have been available to a forecaster at each historical origin.",
+  "news_statement": "Historical analyzed-news data sufficient for a comparable long-horizon experiment is unavailable; therefore the news-adjusted variant is excluded from the real-data results.",
+  "indicators": "not included"
+}

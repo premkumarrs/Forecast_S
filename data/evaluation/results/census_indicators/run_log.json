@@ -1,0 +1,22 @@
+{
+  "specifications": {
+    "spec_a_goods": {
+      "status": "run",
+      "weights": {
+        "us_pce_goods_nominal": 1.0
+      },
+      "n_folds": 19,
+      "failures": 0,
+      "baseline_reproduced": {
+        "rows_compared": 228,
+        "rows_expected": 228,
+        "max_abs_prediction_diff": 2.3283064365386963e-10,
+        "identical_within_csv_roundtrip_rtol_1e-12": true
+      }
+    },
+    "spec_b_goods_internet": {
+      "status": "not run",
+      "reason": "EXCLUDED: the series fails the break inspection (documented source/methodology changes and implausible year-to-year declines/jumps), so specification B (goods 0.5 + internet users 0.5) is not run. Decision made before any indicator-adjusted result was computed."
+    }
+  }
+}

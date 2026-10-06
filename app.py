@@ -216,6 +216,7 @@ st.markdown(
 3. **Forecasting** – Run the engine; optionally include indicators/news.  
 4. **Insights** – Explore global/region/country charts & breakdowns.  
 5. **Export** – Download full historical + forecast datasets.
+6. **Model Evaluation** – Stored out-of-sample walk-forward results on real U.S. Census e-commerce data.
 """
 )
 
