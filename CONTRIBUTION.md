@@ -20,7 +20,7 @@ User and developer documentation for the whole project is in [README.md](README.
 
 ---
 
-## Original Project https://github.com/methunraj
+## Original Project @methunraj
 
 These capabilities existed before my contribution:
 
