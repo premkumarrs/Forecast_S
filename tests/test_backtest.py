@@ -11,6 +11,7 @@ import pytest
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
+from src.forecasting.adjustments.indicator_adjustment import IndicatorAdjustment
 from src.forecasting.base.models import BaseForecaster
 from src.forecasting.evaluation import (
     NAIVE_MODEL_NAME,
@@ -18,6 +19,7 @@ from src.forecasting.evaluation import (
     summarize_backtest,
     walk_forward_folds,
 )
+from src.forecasting.evaluation import backtest as backtest_module
 from src.forecasting.models.baseline_factory import BaselineModelFactory
 
 
@@ -356,3 +358,274 @@ def test_baseline_forecast_is_independent_of_input_row_order():
         ordered = BaselineModelFactory.generate_baseline_forecast(series, model, 2019, 2022)
         unordered = BaselineModelFactory.generate_baseline_forecast(shuffled, model, 2019, 2022)
         pd.testing.assert_frame_equal(ordered, unordered)
+
+
+# --- Phase 2: leakage-controlled indicator evaluation ---
+# "indicator_adjusted_past_only" = indicator adjustment computed using only
+# indicator observations available at or before the fold origin. Unlike
+# production, which receives indicator data extending into forecast years,
+# this is a point-in-time historical evaluation, not a production replay.
+
+MODELS = ["3-yr CAGR", "Damped ETS", "Logistic Growth"]
+INDICATOR_WEIGHTS = {"gdp": 1.0, "internet": 0.5}
+INDICATOR_WEIGHT = 0.3
+TARGET_ORIGIN = 2016
+
+
+def indicator_frame(start_year=2008, end_year=2023, seed=1):
+    rng = np.random.default_rng(seed)
+    years = np.arange(start_year, end_year + 1)
+    steps = np.arange(len(years))
+    gdp = 100 * 1.03 ** steps * (1 + rng.normal(0, 0.01, len(years)))
+    internet = 50 * 1.06 ** steps * (1 + rng.normal(0, 0.01, len(years)))
+    return pd.concat([
+        pd.DataFrame({"year": years, "indicator_key": "gdp", "value": gdp}),
+        pd.DataFrame({"year": years, "indicator_key": "internet", "value": internet}),
+    ], ignore_index=True)
+
+
+def indicator_backtest(indicators, series=None, models=MODELS, horizon=3, **kwargs):
+    return run_backtest(
+        noisy_series() if series is None else series,
+        models=models,
+        horizon=horizon,
+        min_train_years=5,
+        use_indicators=True,
+        indicators=indicators,
+        indicator_weights=INDICATOR_WEIGHTS,
+        indicator_weight=INDICATOR_WEIGHT,
+        **kwargs,
+    )
+
+
+def fold_rows(frame, origin, variant):
+    rows = frame[(frame["origin"] == origin) & (frame["variant"] == variant)]
+    return rows.sort_values(["model", "year"]).reset_index(drop=True)
+
+
+def test_future_indicator_values_cannot_change_adjusted_prediction():
+    original = indicator_frame()
+    altered = original.copy()
+    future = altered["year"] > TARGET_ORIGIN
+    altered.loc[future, "value"] = altered.loc[future, "value"] * 5 + 1000
+
+    a = fold_rows(indicator_backtest(original).to_frame(), TARGET_ORIGIN, "indicator_adjusted_past_only")
+    b = fold_rows(indicator_backtest(altered).to_frame(), TARGET_ORIGIN, "indicator_adjusted_past_only")
+    baseline = fold_rows(indicator_backtest(original).to_frame(), TARGET_ORIGIN, "baseline")
+
+    assert set(a["model"]) == set(MODELS)
+    assert (a["status"] == "ok").all()
+    pd.testing.assert_series_equal(a["predicted"], b["predicted"])
+    assert not np.allclose(a["predicted"], baseline["predicted"])
+
+
+@pytest.mark.parametrize("changed_year", [TARGET_ORIGIN, TARGET_ORIGIN - 3])
+def test_historical_indicator_values_do_change_adjusted_prediction(changed_year):
+    original = indicator_frame()
+    altered = original.copy()
+    row = (altered["year"] == changed_year) & (altered["indicator_key"] == "gdp")
+    altered.loc[row, "value"] = altered.loc[row, "value"] * 1.2
+
+    a = fold_rows(indicator_backtest(original).to_frame(), TARGET_ORIGIN, "indicator_adjusted_past_only")
+    b = fold_rows(indicator_backtest(altered).to_frame(), TARGET_ORIGIN, "indicator_adjusted_past_only")
+
+    assert (a["status"] == "ok").all() and (b["status"] == "ok").all()
+    assert (np.abs(a["predicted"] - b["predicted"]) > 1e-9).all()
+
+
+def test_indicator_data_never_changes_baseline_or_benchmark_records():
+    original = indicator_frame()
+    altered = original.copy()
+    altered["value"] = altered["value"] * np.linspace(0.5, 3.0, len(altered))
+
+    def non_adjusted(frame):
+        return frame[frame["variant"] != "indicator_adjusted_past_only"].reset_index(drop=True)
+
+    plain = run_backtest(noisy_series(), models=MODELS, horizon=3, min_train_years=5).to_frame()
+    with_original = non_adjusted(indicator_backtest(original).to_frame())
+    with_altered = non_adjusted(indicator_backtest(altered).to_frame())
+
+    pd.testing.assert_frame_equal(with_original, plain)
+    pd.testing.assert_frame_equal(with_altered, plain)
+
+
+def test_without_indicators_matches_phase1_baseline_forecasts():
+    series = noisy_series()
+    result = run_backtest(series, models=MODELS, horizon=3, min_train_years=5)
+    frame = result.to_frame()
+
+    assert set(frame["variant"]) == {"baseline", "benchmark"}
+    pd.testing.assert_frame_equal(
+        frame, run_backtest(series, models=MODELS, horizon=3, min_train_years=5,
+                            use_indicators=False).to_frame()
+    )
+    for fold in result.folds:
+        for model in MODELS:
+            expected = BaselineModelFactory.generate_baseline_forecast(
+                series[series["year"] <= fold.origin], model, fold.origin, fold.test_years[-1]
+            )
+            expected = expected[expected["type"] == "Forecast"]["value_hat"].to_numpy()
+            got = frame[(frame["origin"] == fold.origin) & (frame["model"] == model)]
+            np.testing.assert_allclose(got["predicted"].to_numpy(), expected, rtol=0, atol=0)
+
+
+def test_past_only_variant_name_is_explicit():
+    assert backtest_module.VARIANT_INDICATOR_ADJUSTED_PAST_ONLY == "indicator_adjusted_past_only"
+    assert backtest_module.VARIANT_BASELINE == "baseline"
+    assert backtest_module.VARIANT_BENCHMARK == "benchmark"
+    frame = indicator_backtest(indicator_frame()).to_frame()
+    assert "indicator_adjusted" not in set(frame["variant"])
+
+
+def test_variants_are_separately_identifiable():
+    result = indicator_backtest(indicator_frame())
+    frame = result.to_frame()
+
+    assert set(frame["variant"]) == {"baseline", "indicator_adjusted_past_only", "benchmark"}
+    for model in MODELS:
+        baseline = frame[(frame["model"] == model) & (frame["variant"] == "baseline")]
+        adjusted = frame[(frame["model"] == model) & (frame["variant"] == "indicator_adjusted_past_only")]
+        assert len(baseline) == len(adjusted) == len(result.folds) * 3
+        assert list(baseline[["origin", "year"]].itertuples(index=False)) == \
+            list(adjusted[["origin", "year"]].itertuples(index=False))
+    naive = frame[frame["model"] == NAIVE_MODEL_NAME]
+    assert set(naive["variant"]) == {"benchmark"}
+
+    summary = summarize_backtest(result)
+    pairs = set(zip(summary["model"], summary["variant"]))
+    for model in MODELS:
+        assert {(model, "baseline"), (model, "indicator_adjusted_past_only")} <= pairs
+    assert (NAIVE_MODEL_NAME, "indicator_adjusted_past_only") not in pairs
+    assert summary[["mape", "rmse", "mae", "bias"]].notna().all().all()
+
+
+def test_indicator_adjustment_is_applied_at_every_horizon():
+    indicators = indicator_frame()
+    horizon = 4
+    result = indicator_backtest(indicators, horizon=horizon)
+    frame = result.to_frame()
+    config = {"indicator_weights": INDICATOR_WEIGHTS}
+
+    for fold in result.folds:
+        available = indicators[indicators["year"] <= fold.origin].sort_values(["indicator_key", "year"])
+        expected_factor = 1 + IndicatorAdjustment(weight=INDICATOR_WEIGHT).get_weighted_adjustment(
+            IndicatorAdjustment(weight=INDICATOR_WEIGHT).calculate(available, config)
+        )
+        for model in MODELS:
+            base = fold_rows(frame, fold.origin, "baseline")
+            adj = fold_rows(frame, fold.origin, "indicator_adjusted_past_only")
+            base, adj = base[base["model"] == model], adj[adj["model"] == model]
+            assert list(adj["horizon"]) == list(range(1, horizon + 1))
+            assert list(adj["year"]) == list(fold.test_years)
+            np.testing.assert_allclose(
+                adj["predicted"].to_numpy() / base["predicted"].to_numpy(), expected_factor, rtol=1e-12
+            )
+            np.testing.assert_allclose(adj["error"], adj["predicted"] - adj["actual"])
+
+
+def test_past_only_adjustment_matches_hand_calculation():
+    years = np.arange(2008, 2024)
+    indicators = pd.DataFrame({"year": years, "indicator_key": "gdp",
+                               "value": 100 * 1.10 ** np.arange(len(years))})
+    result = run_backtest(
+        noisy_series(), models=["3-yr CAGR"], horizon=2, min_train_years=5, include_naive=False,
+        use_indicators=True, indicators=indicators, indicator_weights={"gdp": 1.0},
+        indicator_weight=INDICATOR_WEIGHT,
+    )
+    frame = result.to_frame()
+    base = fold_rows(frame, TARGET_ORIGIN, "baseline")
+    adj = fold_rows(frame, TARGET_ORIGIN, "indicator_adjusted_past_only")
+
+    # Years 2008..2016 are visible: 8 growth terms of 10% plus the first year,
+    # which IndicatorAdjustment counts as a zero signal.
+    n_years = TARGET_ORIGIN - 2008 + 1
+    expected_factor = 1 + INDICATOR_WEIGHT * (0.10 * (n_years - 1) / n_years)
+    np.testing.assert_allclose(adj["predicted"] / base["predicted"], expected_factor, rtol=1e-12)
+
+
+def test_indicator_row_order_does_not_matter():
+    indicators = indicator_frame()
+    shuffled = indicators.sample(frac=1, random_state=3).reset_index(drop=True)
+    a = indicator_backtest(indicators).to_frame()
+    b = indicator_backtest(shuffled).to_frame()
+    pd.testing.assert_frame_equal(a, b)
+
+
+def test_folds_without_past_indicator_growth_fail_explicitly():
+    late = indicator_frame(start_year=TARGET_ORIGIN)
+    result = indicator_backtest(late)
+    frame = result.to_frame()
+    adjusted = frame[frame["variant"] == "indicator_adjusted_past_only"]
+
+    early = adjusted[adjusted["origin"] <= TARGET_ORIGIN]
+    later = adjusted[adjusted["origin"] > TARGET_ORIGIN]
+    assert not early.empty and not later.empty
+    assert (early["status"] == "failed").all()
+    assert early["predicted"].isna().all()
+    assert early["message"].str.contains("No year-over-year growth observable").all()
+    assert (later["status"] == "ok").all()
+    assert (frame.loc[frame["variant"] == "baseline", "status"] == "ok").all()
+
+    failures = result.failures_frame()
+    assert set(failures["variant"]) == {"indicator_adjusted_past_only"}
+    assert set(failures["error_type"]) == {"InsufficientIndicatorData"}
+    assert len(failures) == early["origin"].nunique() * len(MODELS)
+
+    summary = summarize_backtest(result, group_by=["variant"]).set_index("variant")
+    assert summary.loc["indicator_adjusted_past_only", "n_failed"] == len(early)
+    assert summary.loc["indicator_adjusted_past_only", "n_valid"] == len(later)
+    assert summary.loc["baseline", "n_failed"] == 0
+
+
+def test_partially_missing_weighted_indicator_fails_the_fold():
+    indicators = indicator_frame()
+    late_internet = ~((indicators["indicator_key"] == "internet") & (indicators["year"] < 2018))
+    frame = indicator_backtest(indicators[late_internet]).to_frame()
+    adjusted = frame[frame["variant"] == "indicator_adjusted_past_only"]
+
+    assert (adjusted.loc[adjusted["origin"] < 2019, "status"] == "failed").all()
+    assert adjusted.loc[adjusted["origin"] < 2019, "message"].str.contains("internet").all()
+    assert (adjusted.loc[adjusted["origin"] >= 2019, "status"] == "ok").all()
+
+
+def test_baseline_failure_marks_adjusted_variant_failed(monkeypatch):
+    monkeypatch.setitem(BaselineModelFactory._models, "Always Fails", AlwaysFailsForecaster)
+    frame = indicator_backtest(indicator_frame(), models=["Always Fails"]).to_frame()
+    adjusted = frame[frame["variant"] == "indicator_adjusted_past_only"]
+    assert (adjusted["status"] == "failed").all()
+    assert adjusted["message"].str.contains("Baseline forecast failed").all()
+
+
+@pytest.mark.parametrize("kwargs, match", [
+    (dict(indicators=None), "non-empty indicators"),
+    (dict(indicators=pd.DataFrame()), "non-empty indicators"),
+    (dict(indicator_weights=None), "non-empty indicator_weights"),
+    (dict(indicator_weights={}), "non-empty indicator_weights"),
+    (dict(indicator_weights={"gdp": 1.0, "unknown": 1.0}), "not in the data"),
+    (dict(indicator_weights={"gdp": float("nan")}), "finite number"),
+    (dict(indicator_weight=float("inf")), "finite number"),
+])
+def test_invalid_indicator_configuration_is_rejected(kwargs, match):
+    params = dict(indicators=indicator_frame(), indicator_weights=INDICATOR_WEIGHTS,
+                  indicator_weight=INDICATOR_WEIGHT)
+    params.update(kwargs)
+    with pytest.raises(ValueError, match=match):
+        run_backtest(noisy_series(), models=MODELS, horizon=3, min_train_years=5,
+                     use_indicators=True, **params)
+
+
+@pytest.mark.parametrize("mutate, match", [
+    (lambda df: df.assign(value=df["value"].where(df.index != 3)), "finite numbers"),
+    (lambda df: pd.concat([df, df.iloc[[0]]], ignore_index=True), "one row per indicator and year"),
+    (lambda df: df.drop(columns=["value"]), "missing columns"),
+])
+def test_invalid_indicator_data_is_rejected(mutate, match):
+    with pytest.raises(ValueError, match=match):
+        indicator_backtest(mutate(indicator_frame()))
+
+
+def test_indicator_inputs_without_use_indicators_are_rejected():
+    with pytest.raises(ValueError, match="use_indicators is False"):
+        run_backtest(noisy_series(), indicators=indicator_frame())
+    with pytest.raises(ValueError, match="use_indicators is False"):
+        run_backtest(noisy_series(), indicator_weights=INDICATOR_WEIGHTS)
