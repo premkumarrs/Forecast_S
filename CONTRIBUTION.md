@@ -20,7 +20,7 @@ User and developer documentation for the whole project is in [README.md](README.
 
 ---
 
-## Original Project [ Methun Raj ](https://github.com/methunraj)
+## Original Project: [Methun Raj](https://github.com/methunraj)
 
 These capabilities existed before my contribution:
 
@@ -41,7 +41,7 @@ repository contained no real historical dataset, only random mock data.
 
 ---
 
-## My Contribution
+## Contribution: [Prem Kumar](https://github.com/premkumarrs)
 
 ### 1. Walk-Forward Evaluation
 
