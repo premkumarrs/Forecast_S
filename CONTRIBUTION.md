@@ -169,8 +169,8 @@ access, never reruns an experiment, and shows a clear message instead of results
 | `tests/test_evaluation_artifacts.py` | 16 | Stored-result loading, columns, missing files, metric parsing, best-model selection, indicator comparison |
 
 - **Evaluation-specific tests:** 136/136 passed.
-- **Full suite** (`pytest -q --continue-on-collection-errors`): 142 passed, 3 failed, 1 error.
-- **Pre-existing failures:** all four are in legacy tests from the original code base (`test_forecasting_pipeline.py`, `test_smoke.py`, `test_headline_analysis.py`). They were failing before my work and were deliberately left unchanged; [README.md](README.md#running-tests) lists the causes.
+- **Full suite:** at the time of the evaluation work, 142 passed, 3 failed, 1 error; all four failures were pre-existing in tests from the original code base (`test_forecasting_pipeline.py`, `test_smoke.py`, `test_headline_analysis.py`).
+- **Final audit:** those tests were updated to the current API and a realistic Streamlit mock, the classic Top-Down `NameError` and an export defect for data without `idGeo` were fixed with regression tests, and the full suite now reports 149 passed ([README.md](README.md#running-tests)).
 
 ---
 

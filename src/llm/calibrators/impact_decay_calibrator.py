@@ -68,7 +68,7 @@ def recency_weighted_avg_pct(df: pd.DataFrame, half_life_days: int = 90) -> floa
     m = x.notna() & d.notna()
     if not m.any():
         return float(np.nan_to_num(x.mean(), nan=0.0))
-    age = (pd.Timestamp.utcnow() - d[m]).dt.days.clip(lower=0)
+    age = (pd.Timestamp.now('UTC') - d[m]).dt.days.clip(lower=0)
     hl = max(1, int(half_life_days))
     w = np.power(0.5, age / hl)
     return float(np.average(x[m], weights=w))

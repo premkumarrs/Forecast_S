@@ -67,7 +67,7 @@ def forecast_top_down(
     fallback_countries = {}  # Track which countries use fallback
 
     # Step 3: Adjust each country's baseline forecast
-    for country, _share in country_shares.items():
+    for country, share in country_shares.items():
         baseline_country_forecast = baseline_global_forecast.copy()
         baseline_country_forecast['value_hat'] *= share
         

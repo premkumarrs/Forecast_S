@@ -27,7 +27,7 @@ DEFAULT_NEWS_LOOKBACK_DAYS = 90
 
 
 def _utc_now() -> pd.Timestamp:
-    now = pd.Timestamp.utcnow()
+    now = pd.Timestamp.now('UTC')
     return now.tz_localize(None) if now.tz is not None else now
 
 

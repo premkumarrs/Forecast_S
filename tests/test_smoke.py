@@ -10,14 +10,75 @@ from unittest.mock import MagicMock
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+def _mock_layout(spec, *args, **kwargs):
+    """Like st.columns/st.tabs: one container per requested column or tab."""
+    count = spec if isinstance(spec, int) else len(spec)
+    return [MagicMock() for _ in range(count)]
+
+
+def _mock_choice(label=None, options=(), index=0, *args, **kwargs):
+    """Like st.selectbox/st.radio: return the option at ``index`` (None if no options)."""
+    options = list(options)
+    if not options or index is None:
+        return None
+    return options[index]
+
+
+def _mock_multiselect(label=None, options=(), default=None, *args, **kwargs):
+    """Like st.multiselect: return the default selection."""
+    if default is None:
+        return []
+    return list(default) if isinstance(default, (list, tuple)) else [default]
+
+
+def _mock_cache(func=None, **kwargs):
+    """Like st.cache_data/st.cache_resource: a pass-through decorator, with or without arguments."""
+    if func is None:
+        return lambda f: f
+    return func
+
+
+def _mock_numeric(label=None, min_value=None, max_value=None, value=None, *args, **kwargs):
+    """Like st.slider/st.number_input: return ``value``, else ``min_value``."""
+    if value is not None:
+        return value
+    return min_value if min_value is not None else 0
+
+
+class _StopExecution(Exception):
+    """Raised by the mocked st.stop(), which ends a real Streamlit script run."""
+
+
+class _SessionState(dict):
+    """Dict-backed stand-in for st.session_state (supports attribute access)."""
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError as exc:
+            raise AttributeError(key) from exc
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __delattr__(self, key):
+        try:
+            del self[key]
+        except KeyError as exc:
+            raise AttributeError(key) from exc
+
+
 # Mock Streamlit before any imports that might use it
 def setup_streamlit_mock():
     """Setup a comprehensive Streamlit mock"""
     mock_st = MagicMock()
     
-    # Mock common Streamlit functions to return sensible defaults
-    mock_st.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
-    mock_st.tabs.return_value = [MagicMock(), MagicMock()]
+    # Layout helpers return as many containers as the page requests
+    mock_st.columns.side_effect = _mock_layout
+    mock_st.tabs.side_effect = _mock_layout
+    mock_st.stop.side_effect = _StopExecution
+    mock_st.cache_data = _mock_cache
+    mock_st.cache_resource = _mock_cache
     mock_st.expander.return_value = MagicMock()
     mock_st.container.return_value = MagicMock()
     mock_st.empty.return_value = MagicMock()
@@ -30,25 +91,17 @@ def setup_streamlit_mock():
     mock_st.warning.return_value = None
     mock_st.info.return_value = None
     
-    # Mock input widgets
+    # Mock input widgets with the values real Streamlit returns on first render
     mock_st.button.return_value = False
-    mock_st.selectbox.return_value = "default"
-    mock_st.multiselect.return_value = []
-    mock_st.slider.return_value = 1
+    mock_st.selectbox.side_effect = _mock_choice
+    mock_st.radio.side_effect = _mock_choice
+    mock_st.multiselect.side_effect = _mock_multiselect
+    mock_st.slider.side_effect = _mock_numeric
     mock_st.text_input.return_value = ""
-    mock_st.number_input.return_value = 0
-    
-    # Create a comprehensive session_state mock
-    mock_session_state = MagicMock()
-    mock_session_state.query_cache = {}
-    mock_session_state.unified_data = {}
-    mock_session_state.config = {}
-    mock_session_state.__contains__ = lambda self, key: True
-    mock_session_state.__getitem__ = lambda self, key: {}
-    mock_session_state.__setitem__ = lambda self, key, value: None
-    mock_session_state.get = lambda key, default=None: default
-    
-    mock_st.session_state = mock_session_state
+    mock_st.number_input.side_effect = _mock_numeric
+
+    # Session state behaves like Streamlit's: key and attribute access on one store
+    mock_st.session_state = _SessionState(query_cache={}, unified_data={}, config={})
     sys.modules['streamlit'] = mock_st
     return mock_st
 
@@ -79,7 +132,8 @@ def test_page_imports():
         "02_Configuration.py", 
         "03_Forecasting.py",
         "04_Insights.py",
-        "05_Export.py"
+        "05_Export.py",
+        "06_Evaluation.py"
     ]
     
     for page_file in page_files:
@@ -101,7 +155,10 @@ def test_page_imports():
             
             # Create a temporary namespace for execution
             page_namespace = {}
-            exec(page_code, page_namespace)
+            try:
+                exec(page_code, page_namespace)
+            except _StopExecution:
+                pass  # st.stop() is a normal end of the page run
             
             # Remove pages directory from path
             sys.path.remove(str(pages_dir))

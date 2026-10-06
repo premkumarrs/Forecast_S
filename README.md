@@ -66,7 +66,7 @@ flowchart TD
 |---|---|
 | **Global Only** (shown as *Global-level*) | Forecasts the global series only: baseline model plus global news and global indicator adjustments. |
 | **Bottom-Up** | Forecasts each country with its own baseline and country news/indicator adjustments, then sums countries into regions and `Worldwide`. |
-| **Top-Down** | Forecasts the global series and allocates it to countries by historical share, then applies country adjustments. Classic mode currently has a known defect (see [Troubleshooting](#troubleshooting)). |
+| **Top-Down** | Forecasts the global series and allocates it to countries by historical share, then applies country adjustments. |
 | **Country-Specific** | Forecasts a user-selected set of countries individually. |
 
 Regional aggregation uses the hierarchy in `config/aggregation.json`.
@@ -391,9 +391,9 @@ Forecast_S/
     ├── test_backtest.py           # Folds, backtest, temporal isolation, indicator/news variants
     ├── test_experiment.py         # Comparative experiments, comparison, export
     ├── test_evaluation_artifacts.py   # Stored-result loading for the dashboard
-    ├── test_forecasting_pipeline.py   # Legacy
-    ├── test_headline_analysis.py      # Legacy
-    └── test_smoke.py                  # Legacy import smoke tests
+    ├── test_forecasting_pipeline.py   # Baseline + adjustments, Top-Down, market export
+    ├── test_headline_analysis.py      # LLM headline analysis (mocked Ollama)
+    └── test_smoke.py                  # app.py and page import/execution smoke tests
 ```
 
 **Evaluation package** (`src/forecasting/evaluation/`):
@@ -609,15 +609,10 @@ Full suite:
 python -m pytest -q
 ```
 
-Plain `python -m pytest -q` stops at the legacy collection error below. To run every collectable
-test, add `--continue-on-collection-errors`; the current result is **142 passed, 3 failed, 1 error**.
-The failures are legacy tests from the original codebase that predate the evaluation work:
-
-| Test | Failure |
-|---|---|
-| `tests/test_forecasting_pipeline.py` | Collection error: imports `apply_indicator_adjustment`, which `src.forecasting` does not export |
-| `tests/test_smoke.py::test_app_imports`, `::test_page_imports` | Importing `pages/01_Data_Extraction.py` raises `'str' object has no attribute 'value'` |
-| `tests/test_headline_analysis.py::test_analyze_headlines` | Mocks an older response schema (`KeyError: 'magnitude'`) |
+Current result: **149 passed**. Besides the evaluation tests, the suite covers the forecasting
+pipeline and Top-Down distribution (`test_forecasting_pipeline.py`), LLM headline analysis against a
+mocked Ollama endpoint (`test_headline_analysis.py`), and import/execution of `app.py` and all six
+pages under a Streamlit mock (`test_smoke.py`).
 
 ### Reproducing the evaluation results
 
@@ -663,7 +658,5 @@ No formatter, linter or type checker is configured. Before committing, run the t
 | GDELT requests fail with certificate errors | Check network access to `api.gdeltproject.org`. On a trusted network only, temporarily set `GDELT_SSL_VERIFY=false`. |
 | No news returned, or news fetching is slow | Use broader topics; GDELT covers only about the last three months. Requests are spaced 5–6 seconds apart, so many topics take time. |
 | A country receives no news | Check that it has a valid ISO3 code with a FIPS mapping. Countries with fewer than 5 analyzed headlines use global news at reduced confidence. |
-| Top-Down returns "Forecast execution failed" | Known defect in classic mode: `src/forecasting/methods/top_down.py` uses an undefined variable `share` (the loop variable is `_share`). Use Bottom-Up, Country-Specific or Global-level until it is fixed. |
 | The Model Evaluation page reports missing results | Files in `data/evaluation/results/` are missing; regenerate them with the evaluation scripts. The page never generates results itself. |
 | Regenerated results differ from the stored ones | The source files were replaced with a newer release. Census and BEA revise historical values, so re-downloaded (current-vintage) data can change the metrics; keep the stored raw files to reproduce the published results. |
-| `pytest` stops with a collection error, or reports 3 failures | These are the known legacy test failures; use `--continue-on-collection-errors`. The evaluation tests are unaffected. |

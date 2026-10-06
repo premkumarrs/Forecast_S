@@ -25,7 +25,13 @@ def _years_union(hist_years: List[int], forecast_years: List[int]) -> List[int]:
 def _pivot_wide(df: pd.DataFrame, id_cols: List[str], value_col: str = 'value') -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame(columns=id_cols)
-    p = df.pivot_table(index=id_cols, columns='year', values=value_col, aggfunc='last')
+    # groupby(dropna=False) keeps rows whose idGeo is missing (demo data has no idGeo);
+    # pivot_table would drop them, and its dropna=False adds a cartesian product of ids.
+    p = (
+        df.groupby(id_cols + ['year'], dropna=False)[value_col].last()
+        .unstack('year')
+        .dropna(axis=1, how='all')
+    )
     p = p.reset_index()
     # Ensure numeric years ordering
     value_cols = [c for c in p.columns if isinstance(c, (int, np.integer)) or (isinstance(c, str) and c.isdigit())]

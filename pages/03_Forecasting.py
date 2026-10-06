@@ -152,7 +152,7 @@ def _recency_weighted_mean_list(rows, half_life_days):
         # Fallback to simple mean if dates are missing
         return float(x.mean()) if x.notna().any() else 0.0
     
-    age_days = (pd.Timestamp.utcnow() - d[m]).dt.days.clip(lower=0)
+    age_days = (pd.Timestamp.now('UTC') - d[m]).dt.days.clip(lower=0)
     # Ensure half_life is positive to avoid division issues
     half_life_days = max(1, abs(half_life_days))
     w = np.power(0.5, age_days / half_life_days)

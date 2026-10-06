@@ -31,12 +31,12 @@ def mock_api_responses():
     return {
         'New Factory Investment to Boost Production by 50%': {
             "category": "Strategic Investment",
-            "magnitude": 1.8,
+            "growth_rate": 1.8,
             "reason": "Significant capital expenditure indicates strong future growth."
         },
         'Geopolitical Tensions Halt Key Shipments': {
             "category": "Geopolitical Tension",
-            "magnitude": -1.5,
+            "growth_rate": -1.5,
             "reason": "Trade disruption creates near-term negative impact."
         }
     }
@@ -64,7 +64,7 @@ def test_analyze_headlines(mock_post, sample_headlines, mock_api_responses):
         # Get the expected response for this headline
         api_response_data = mock_api_responses.get(headline, {
             "category": "Neutral/Noise",
-            "magnitude": 0,
+            "growth_rate": 0,
             "reason": "Default response"
         })
         
@@ -86,17 +86,23 @@ def test_analyze_headlines(mock_post, sample_headlines, mock_api_responses):
     assert mock_post.call_count == len(sample_headlines)
 
     assert isinstance(result_df, pd.DataFrame)
-    expected_columns = ['title', 'date', 'category', 'growth_rate', 'reason']
+    expected_columns = ['title', 'date', 'category', 'growth_rate', 'reason', 'relevant']
     assert all(col in result_df.columns for col in expected_columns)
     assert len(result_df) == len(sample_headlines)
 
-    first_result = result_df.iloc[0]
-    assert first_result['title'] == 'New Factory Investment to Boost Production by 50%'
+    # Headlines are analyzed concurrently, so rows arrive in completion order
+    by_title = result_df.set_index('title')
 
-    second_result = result_df.iloc[1]
-    assert second_result['title'] == 'Geopolitical Tensions Halt Key Shipments'
+    first_result = by_title.loc['New Factory Investment to Boost Production by 50%']
+    assert first_result['date'] == '2024-01-10'
+    assert first_result['category'] == 'Strategic Investment'
+    assert first_result['growth_rate'] == 1.8
+    assert first_result['relevant'] == 1
+
+    second_result = by_title.loc['Geopolitical Tensions Halt Key Shipments']
     assert second_result['category'] == 'Geopolitical Tension'
-    assert second_result['magnitude'] == -1.5
+    assert second_result['growth_rate'] == -1.5
+    assert second_result['reason'] == 'Trade disruption creates near-term negative impact.'
     
     print("\nHeadline analysis unit test passed successfully.")
 
