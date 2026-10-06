@@ -26,6 +26,9 @@ htmlcov/
 # Streamlit local secrets
 .streamlit/secrets.toml
 
+# Generated evaluation caches (e.g. historical headline analyses)
+.forecast_cache/
+
 # Logs
 *.log
 logs/

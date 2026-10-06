@@ -133,10 +133,30 @@ def _batch_topics(topics: Iterable[str], batch_size: int = BATCH_SIZE) -> List[L
 # -------------------------
 # Dates (UTC, last N days)
 # -------------------------
-def _date_bounds_utc(days_back: int = 90) -> Tuple[str, str]:
-    end_dt = datetime.now(tz=timezone.utc)
-    start_dt = end_dt - timedelta(days=days_back)
-    return start_dt.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
+def _historical_end_utc(end_date) -> datetime:
+    """Parse an explicit historical end; naive values are taken as UTC."""
+    ts = pd.Timestamp(end_date)
+    if pd.isna(ts):
+        raise ValueError(f"end_date must be a valid timestamp, got {end_date!r}")
+    if ts.tz is not None:
+        ts = ts.tz_convert("UTC").tz_localize(None)
+    return ts.floor("s").to_pydatetime()
+
+
+def _date_bounds_utc(days_back: int = 90, end_date=None) -> Tuple[object, object]:
+    """Return the fetch window.
+
+    Without ``end_date`` (production): ``YYYY-MM-DD`` strings for the last
+    ``days_back`` days relative to now. With ``end_date`` (historical): naive
+    UTC datetimes ``(end_date - days_back, end_date)`` at second precision, so
+    the window is anchored to the supplied time and never to today.
+    """
+    if end_date is None:
+        end_dt = datetime.now(tz=timezone.utc)
+        start_dt = end_dt - timedelta(days=days_back)
+        return start_dt.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
+    end_dt = _historical_end_utc(end_date)
+    return end_dt - timedelta(days=days_back), end_dt
 
 
 # ----------------------------------
@@ -161,8 +181,8 @@ def iso3_to_fips(iso3: Optional[str]) -> Optional[str]:
 # ------------------------
 def _search_articles_batch(
     keywords: List[str],
-    start_date: str,
-    end_date: str,
+    start_date,
+    end_date,
     country_fips: Optional[str],
     max_records: int,
     batch_index: int,
@@ -213,13 +233,15 @@ def _search_articles(
     country_fips: Optional[str] = None,
     max_workers: int = GLOBAL_BATCH_WORKERS,
     progress_callback=None,
+    end_date=None,
 ) -> pd.DataFrame:
     batches = _batch_topics(topics)
     cols = ["title", "date", "url", "sourcecountry", "language"] + (["country"] if country_fips else [])
     if not batches:
         return pd.DataFrame(columns=cols)
 
-    start_date, end_date = _date_bounds_utc(days_back)
+    historical_end = end_date
+    start_date, end_date = _date_bounds_utc(days_back, end_date=historical_end)
 
     # Parallel batch processing
     frames: List[pd.DataFrame] = []
@@ -253,6 +275,15 @@ def _search_articles(
 
     all_df = pd.concat(frames, ignore_index=True)
     all_df = all_df.drop_duplicates(subset="url", keep="first")
+    if historical_end is not None:
+        # The API window is not guaranteed to be exact, so articles outside
+        # [start, end] (or without a date) are dropped for historical fetches.
+        if "date" in all_df.columns:
+            dates = pd.to_datetime(all_df["date"], errors="coerce", utc=True).dt.tz_localize(None)
+            in_window = dates.notna() & (dates >= start_date) & (dates <= end_date)
+            all_df = all_df[in_window.to_numpy()]
+        else:
+            all_df = all_df.iloc[0:0]
     if "date" in all_df.columns:
         all_df = all_df.sort_values("date", ascending=False, na_position="last").reset_index(drop=True)
     return all_df
@@ -261,8 +292,21 @@ def _search_articles(
 # -------------------------
 # Public API (same as before)
 # -------------------------
-def fetch_max_gdelt_articles(topics: Iterable[str], days_back: int = 90, progress_callback=None) -> Tuple[pd.DataFrame, bool]:
-    df = _search_articles(topics=topics, days_back=days_back, country_fips=None, progress_callback=progress_callback)
+#
+# ``end_date`` (optional, all article fetchers): explicit historical end of the
+# window. None keeps the production behaviour (last ``days_back`` days up to
+# now). When given, the window is ``[end_date - days_back, end_date]`` in UTC
+# and returned articles dated outside it are dropped. Note that the GDELT DOC
+# API officially covers only the most recent ~3 months; older windows may
+# return partial or no data.
+def fetch_max_gdelt_articles(
+    topics: Iterable[str],
+    days_back: int = 90,
+    progress_callback=None,
+    end_date=None,
+) -> Tuple[pd.DataFrame, bool]:
+    df = _search_articles(topics=topics, days_back=days_back, country_fips=None,
+                          progress_callback=progress_callback, end_date=end_date)
     return df, not df.empty
 
 
@@ -271,9 +315,11 @@ def fetch_country_headlines(
     topics: Iterable[str],
     days_back: int = 90,
     max_articles: int = MAX_ARTICLES_PER_BATCH,
+    end_date=None,
 ) -> Tuple[pd.DataFrame, bool]:
     fips = iso3_to_fips(iso3_code)
-    df = _search_articles(topics=topics, days_back=days_back, max_records=max_articles, country_fips=fips)
+    df = _search_articles(topics=topics, days_back=days_back, max_records=max_articles,
+                          country_fips=fips, end_date=end_date)
     return df, not df.empty
 
 
@@ -284,6 +330,7 @@ def fetch_multi_country_headlines(
     max_articles: int = MAX_ARTICLES_PER_BATCH,
     max_workers: int = MULTI_COUNTRY_MAX_WORKERS,
     progress_callback=None,
+    end_date=None,
 ) -> Dict[str, pd.DataFrame]:
     results: Dict[str, pd.DataFrame] = {}
 
@@ -295,7 +342,8 @@ def fetch_multi_country_headlines(
             days_back=days_back, 
             max_records=max_articles, 
             country_fips=fips,
-            max_workers=BATCH_PARALLEL_WORKERS  # 5 parallel batches per country
+            max_workers=BATCH_PARALLEL_WORKERS,  # 5 parallel batches per country
+            end_date=end_date,
         )
         if not df.empty:
             logger.info(f"Successfully fetched {len(df)} articles for {name}.")

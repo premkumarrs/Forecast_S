@@ -1,5 +1,19 @@
 """
 News-based forecast adjustments.
+
+Reference time: every recency and category-window calculation is measured
+from ``NewsAdjustment.reference_time()``. In production (``as_of=None``) that
+is the current UTC time, as before. For historical evaluation, passing
+``as_of`` makes the calculation point-in-time: headlines dated after
+``as_of`` or older than ``lookback_days`` before it are dropped, and the
+current clock is never consulted.
+
+Both calculation paths go through ``reference_time()``: with ``categories``
+configured, the category moving averages; without them, ``_calculate_legacy``
+-> ``_recency_weighted_mean``. Neither calls the calibrator's
+``recency_weighted_avg_pct`` (which reads the current time); that function is
+used only by ``NewsAnalysisService`` for live production news, so it cannot
+affect a historical ``as_of`` evaluation.
 """
 
 import pandas as pd
@@ -8,6 +22,24 @@ from typing import Dict, Tuple, Optional
 from .base import BaseAdjustment
 from .temporal_decay import TemporalDecay
 
+# Matches the GDELT fetch window (``days_back=90``) used by production.
+DEFAULT_NEWS_LOOKBACK_DAYS = 90
+
+
+def _utc_now() -> pd.Timestamp:
+    now = pd.Timestamp.utcnow()
+    return now.tz_localize(None) if now.tz is not None else now
+
+
+def _to_naive_utc(value) -> pd.Timestamp:
+    """Timezone-aware values are converted to UTC; naive values are taken as UTC."""
+    ts = pd.Timestamp(value)
+    if pd.isna(ts):
+        raise ValueError(f"as_of must be a valid timestamp, got {value!r}")
+    if ts.tz is not None:
+        ts = ts.tz_convert("UTC").tz_localize(None)
+    return ts
+
 
 class NewsAdjustment(BaseAdjustment):
     """Calculate and apply news-based adjustments to forecasts."""
@@ -15,7 +47,9 @@ class NewsAdjustment(BaseAdjustment):
     def __init__(
         self,
         weight: float = 0.7,
-        confidence_multiplier: float = 1.0
+        confidence_multiplier: float = 1.0,
+        as_of=None,
+        lookback_days: int = DEFAULT_NEWS_LOOKBACK_DAYS,
     ):
         """
         Initialize news adjustment.
@@ -23,12 +57,42 @@ class NewsAdjustment(BaseAdjustment):
         Args:
             weight: Weight of news adjustment (0-1)
             confidence_multiplier: Confidence in news data (0-1)
+            as_of: Optional historical reference timestamp. None keeps the
+                production behaviour (reference time = now, no filtering).
+                When set, only headlines dated in
+                ``[as_of - lookback_days, as_of]`` are used and all recency
+                and category windows are measured from ``as_of``.
+            lookback_days: News window length in days, applied only when
+                ``as_of`` is set.
         """
         super().__init__(weight)
+        if isinstance(lookback_days, bool) or not isinstance(lookback_days, int) or lookback_days < 1:
+            raise ValueError(f"lookback_days must be a positive integer, got {lookback_days!r}")
         self.confidence_multiplier = confidence_multiplier
+        self.as_of = None if as_of is None else _to_naive_utc(as_of)
+        self.lookback_days = lookback_days
         self.adjustment_value = 0.0
         self.category_breakdown = {}
         self.temporal_decay = TemporalDecay()
+
+    def reference_time(self) -> pd.Timestamp:
+        """Naive-UTC time that recency and category windows are measured from."""
+        return self.as_of if self.as_of is not None else _utc_now()
+
+    def filter_point_in_time(self, data: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
+        """Keep only headlines available in the window ending at ``as_of``.
+
+        Returns ``data`` unchanged when ``as_of`` is None. Headlines whose date
+        cannot be parsed are dropped, since their availability cannot be shown.
+        """
+        if self.as_of is None or data is None or data.empty:
+            return data
+        if 'date' not in data.columns:
+            return data.iloc[0:0]
+        dates = pd.to_datetime(data['date'], errors='coerce', utc=True).dt.tz_localize(None)
+        window_start = self.as_of - pd.Timedelta(days=self.lookback_days)
+        mask = dates.notna() & (dates >= window_start) & (dates <= self.as_of)
+        return data[mask.to_numpy()]
     
     def _calculate_legacy(self, data: pd.DataFrame, config: Dict) -> float:
         """Legacy calculation method for backward compatibility."""
@@ -79,15 +143,12 @@ class NewsAdjustment(BaseAdjustment):
         if not m.any():
             return float('nan')
         
-        # Calculate age in days from current time
-        # Ensure timezone consistency
-        current_time = pd.Timestamp.utcnow()
+        # Calculate age in days from the reference time
+        current_time = self.reference_time()
         dates = d[m]
         if dates.dt.tz is not None:
             # Convert timezone-aware to naive
             dates = dates.dt.tz_localize(None)
-        if current_time.tz is not None:
-            current_time = current_time.tz_localize(None)
         
         age_days = (current_time - dates).dt.days.clip(lower=0)
         
@@ -109,6 +170,8 @@ class NewsAdjustment(BaseAdjustment):
         Returns:
             Total news adjustment value
         """
+        data = self.filter_point_in_time(data)
+        reference_time = self.reference_time()
         if data is None or data.empty:
             self.adjustment_value = 0.0
             self.category_breakdown = {}
@@ -173,7 +236,7 @@ class NewsAdjustment(BaseAdjustment):
                 continue
             
             # Calculate MA for this category
-            cutoff_date = pd.Timestamp.utcnow() - pd.Timedelta(days=ma_window)
+            cutoff_date = reference_time - pd.Timedelta(days=ma_window)
             # Convert dates and ensure timezone consistency
             cat_data = cat_data.copy()  # Avoid SettingWithCopyWarning
             cat_data['date'] = pd.to_datetime(cat_data['date'])
@@ -195,8 +258,8 @@ class NewsAdjustment(BaseAdjustment):
                 continue
             
             # Apply recency weighting within the MA window
-            # Calculate weights based on days ago from today
-            recent_data['days_ago'] = (pd.Timestamp.utcnow().tz_localize(None) - recent_data['date']).dt.days
+            # Calculate weights based on days ago from the reference time
+            recent_data['days_ago'] = (reference_time - recent_data['date']).dt.days
             
             # Use exponential decay for recency (half-life = 1/3 of window)
             half_life = max(ma_window / 3, 7)  # At least 7 days half-life

@@ -11,7 +11,10 @@ import pytest
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
+from src.forecasting.adjustments import news_adjustment as news_adjustment_module
 from src.forecasting.adjustments.indicator_adjustment import IndicatorAdjustment
+from src.forecasting.adjustments.news_adjustment import NewsAdjustment
+from src.forecasting.adjustments.temporal_decay import TemporalDecay
 from src.forecasting.base.models import BaseForecaster
 from src.forecasting.evaluation import (
     NAIVE_MODEL_NAME,
@@ -20,6 +23,15 @@ from src.forecasting.evaluation import (
     walk_forward_folds,
 )
 from src.forecasting.evaluation import backtest as backtest_module
+from src.forecasting.evaluation.news_history import (
+    ANALYST_FAILURE_REASON,
+    HeadlineAnalysisCache,
+    HeadlineAnalysisError,
+    analysis_fingerprint,
+    analyze_headlines_cached,
+    fetch_headlines_for_origins,
+    news_as_of,
+)
 from src.forecasting.models.baseline_factory import BaselineModelFactory
 
 
@@ -629,3 +641,509 @@ def test_indicator_inputs_without_use_indicators_are_rejected():
         run_backtest(noisy_series(), indicators=indicator_frame())
     with pytest.raises(ValueError, match="use_indicators is False"):
         run_backtest(noisy_series(), indicator_weights=INDICATOR_WEIGHTS)
+
+
+# --- Phase 3: historical (point-in-time) news evaluation ---
+# "news_adjusted_historical" = NewsAdjustment with as_of = Y-12-31 23:59:59 and
+# only headlines dated in [as_of - 90 days, as_of]. Retrieval/windowing is
+# point-in-time; the analysed growth rates here are synthetic, so no LLM (and
+# no LLM hindsight) is involved in these tests.
+
+NEWS = "news_adjusted_historical"
+NEWS_CATEGORIES = [
+    {"name": "Demand", "ma_window_days": 30},
+    {"name": "Supply", "ma_window_days": 60},
+    {"name": "Neutral/Noise", "ma_window_days": 0},
+]
+NEWS_CONFIG = {
+    "categories": NEWS_CATEGORIES,
+    "adjustment_weights": {"news_weight": 0.7},
+    "long_term_decay_rate": 0.6,
+}
+LEGACY_NEWS_CONFIG = {"adjustment_weights": {"news_weight": 0.7}, "news_half_life_days": 90}
+DAYS_BEFORE_YEAR_END = (2, 10, 25, 40, 55, 80)
+
+
+def headline(date, growth_rate, category="Demand", title=None, relevant=1):
+    return {
+        "title": title or f"{category} headline {pd.Timestamp(date)}",
+        "date": pd.Timestamp(date),
+        "category": category,
+        "growth_rate": float(growth_rate),
+        "reason": "synthetic",
+        "relevant": relevant,
+    }
+
+
+def news_frame(start_year=2012, end_year=2023, seed=2):
+    rng = np.random.default_rng(seed)
+    rows = []
+    for year in range(start_year, end_year + 1):
+        for days_before in DAYS_BEFORE_YEAR_END:
+            date = pd.Timestamp(year=year, month=12, day=31, hour=12) - pd.Timedelta(days=days_before)
+            for category in ("Demand", "Supply"):
+                growth = rng.uniform(0.5, 5.0) * rng.choice([-1.0, 1.0])
+                rows.append(headline(date, round(growth, 3), category,
+                                     title=f"{category} {year} -{days_before}d"))
+    return pd.DataFrame(rows)
+
+
+def news_backtest(news, models=MODELS, horizon=3, config=NEWS_CONFIG, **kwargs):
+    return run_backtest(
+        noisy_series(), models=models, horizon=horizon, min_train_years=5,
+        use_news=True, news=news, news_config=config, **kwargs,
+    )
+
+
+def with_headlines(news, *rows):
+    return pd.concat([news, pd.DataFrame(list(rows))], ignore_index=True)
+
+
+def test_news_as_of_is_end_of_origin_year():
+    assert news_as_of(2018) == pd.Timestamp("2018-12-31 23:59:59")
+    with pytest.raises(TypeError):
+        news_as_of("2018")
+
+
+def test_future_news_cannot_change_historical_fold():
+    original = news_frame()
+    altered = original.copy()
+    future = altered["date"] > news_as_of(TARGET_ORIGIN)
+    altered.loc[future, "growth_rate"] = altered.loc[future, "growth_rate"] * -10 + 50
+    altered = with_headlines(altered, headline("2017-01-15", 30.0), headline("2017-02-01", -25.0, "Supply"))
+
+    a = fold_rows(news_backtest(original).to_frame(), TARGET_ORIGIN, NEWS)
+    b = fold_rows(news_backtest(altered).to_frame(), TARGET_ORIGIN, NEWS)
+    baseline = fold_rows(news_backtest(original).to_frame(), TARGET_ORIGIN, "baseline")
+
+    assert set(a["model"]) == set(MODELS)
+    assert (a["status"] == "ok").all()
+    pd.testing.assert_series_equal(a["predicted"], b["predicted"])
+    assert not np.allclose(a["predicted"], baseline["predicted"])
+
+
+def test_headline_one_second_after_as_of_is_ignored_but_at_as_of_counts():
+    as_of = news_as_of(TARGET_ORIGIN)
+    original = news_frame()
+    reference = fold_rows(news_backtest(original).to_frame(), TARGET_ORIGIN, NEWS)
+
+    late = with_headlines(original, headline(as_of + pd.Timedelta(seconds=1), 40.0))
+    late_day = with_headlines(original, headline(as_of + pd.Timedelta(days=1), 40.0))
+    on_time = with_headlines(original, headline(as_of, 40.0))
+
+    for news in (late, late_day):
+        result = fold_rows(news_backtest(news).to_frame(), TARGET_ORIGIN, NEWS)
+        pd.testing.assert_series_equal(result["predicted"], reference["predicted"])
+    included = fold_rows(news_backtest(on_time).to_frame(), TARGET_ORIGIN, NEWS)
+    assert (np.abs(included["predicted"] - reference["predicted"]) > 1e-9).all()
+
+
+def test_historical_news_change_changes_fold():
+    original = news_frame()
+    altered = original.copy()
+    row = altered["title"] == f"Demand {TARGET_ORIGIN} -2d"
+    assert row.sum() == 1
+    altered.loc[row, "growth_rate"] = altered.loc[row, "growth_rate"] + 20
+
+    a = fold_rows(news_backtest(original).to_frame(), TARGET_ORIGIN, NEWS)
+    b = fold_rows(news_backtest(altered).to_frame(), TARGET_ORIGIN, NEWS)
+    assert (np.abs(a["predicted"] - b["predicted"]) > 1e-9).all()
+
+
+@pytest.mark.parametrize("fake_now", ["2099-06-30", None])
+def test_historical_news_does_not_depend_on_current_date(monkeypatch, fake_now):
+    news = news_frame()
+    reference = news_backtest(news).to_frame()
+
+    def patched_now():
+        if fake_now is None:
+            raise AssertionError("current time consulted during historical evaluation")
+        return pd.Timestamp(fake_now)
+
+    monkeypatch.setattr(news_adjustment_module, "_utc_now", patched_now)
+    pd.testing.assert_frame_equal(news_backtest(news).to_frame(), reference)
+
+
+@pytest.mark.parametrize("config", [NEWS_CONFIG, LEGACY_NEWS_CONFIG], ids=["categories", "no_categories"])
+def test_historical_news_never_uses_clock_based_calibrator_average(monkeypatch, config):
+    news = news_frame()
+    reference = news_backtest(news, config=config).to_frame()
+
+    def clock_dependent(*args, **kwargs):
+        raise AssertionError("recency_weighted_avg_pct used during historical evaluation")
+
+    def clock(*args, **kwargs):
+        raise AssertionError("current time consulted during historical evaluation")
+
+    monkeypatch.setattr(
+        "src.llm.calibrators.impact_decay_calibrator.recency_weighted_avg_pct", clock_dependent
+    )
+    monkeypatch.setattr(news_adjustment_module, "_utc_now", clock)
+    frame = news_backtest(news, config=config).to_frame()
+
+    pd.testing.assert_frame_equal(frame, reference)
+    assert (frame.loc[frame["variant"] == NEWS, "status"] == "ok").all()
+
+
+def test_category_windows_are_measured_from_as_of_not_today(monkeypatch):
+    as_of = news_as_of(TARGET_ORIGIN)
+    base = [headline(as_of - pd.Timedelta(days=5), 2.0, "Demand"),
+            headline(as_of - pd.Timedelta(days=5), 1.0, "Supply")]
+
+    def score(rows, as_of_value=as_of):
+        adjustment = NewsAdjustment(as_of=as_of_value)
+        value = adjustment.calculate(pd.DataFrame(rows), {"categories": NEWS_CATEGORIES})
+        return value, adjustment.category_breakdown
+
+    base_value, _ = score(base)
+    inside, _ = score(base + [headline(as_of - pd.Timedelta(days=20), 10.0, "Demand")])
+    outside_demand, _ = score(base + [headline(as_of - pd.Timedelta(days=45), 10.0, "Demand")])
+    inside_supply, _ = score(base + [headline(as_of - pd.Timedelta(days=45), 10.0, "Supply")])
+
+    assert inside != pytest.approx(base_value)
+    assert outside_demand == pytest.approx(base_value)
+    assert inside_supply != pytest.approx(base_value)
+
+    monkeypatch.setattr(news_adjustment_module, "_utc_now", lambda: pd.Timestamp("2026-10-06"))
+    historical_value, historical = score(base)
+    production_value, production = score(base, as_of_value=None)
+    assert historical["Demand"]["status"] == "Active"
+    assert historical_value == pytest.approx(base_value)
+    assert production["Demand"]["status"] == "No data in window"
+    assert production_value == 0.0
+
+
+def test_news_window_excludes_headlines_older_than_lookback():
+    as_of = news_as_of(TARGET_ORIGIN)
+    base = [headline(as_of - pd.Timedelta(days=10), 2.0)]
+
+    def score(rows):
+        return NewsAdjustment(as_of=as_of).calculate(pd.DataFrame(rows), LEGACY_NEWS_CONFIG)
+
+    base_value = score(base)
+    assert score(base + [headline(as_of - pd.Timedelta(days=100), 25.0)]) == pytest.approx(base_value)
+    assert score(base + [headline(as_of - pd.Timedelta(days=90, seconds=1), 25.0)]) == pytest.approx(base_value)
+    assert score(base + [headline(as_of - pd.Timedelta(days=90), 25.0)]) != pytest.approx(base_value)
+    assert score(base + [headline(as_of - pd.Timedelta(days=80), 25.0)]) != pytest.approx(base_value)
+
+    news = news_frame()
+    reference = news_backtest(news, config=LEGACY_NEWS_CONFIG).to_frame()
+    old = with_headlines(news, headline(as_of - pd.Timedelta(days=100), 25.0))
+    pd.testing.assert_frame_equal(news_backtest(old, config=LEGACY_NEWS_CONFIG).to_frame(), reference)
+
+
+def test_production_news_adjustment_without_as_of_is_unchanged(monkeypatch):
+    monkeypatch.setattr(news_adjustment_module, "_utc_now", lambda: pd.Timestamp("2026-10-06"))
+    rows = pd.DataFrame([headline("2026-10-06", 4.0), headline("2026-07-08", 1.0),
+                         headline("2025-01-01", 3.0)])
+    value = NewsAdjustment().calculate(rows, LEGACY_NEWS_CONFIG)
+
+    ages = np.array([0, 90, (pd.Timestamp("2026-10-06") - pd.Timestamp("2025-01-01")).days])
+    weights = 0.5 ** (ages / 90)
+    expected = np.average([4.0, 1.0, 3.0], weights=weights) / 100
+    assert value == pytest.approx(expected)
+    assert NewsAdjustment().filter_point_in_time(rows) is rows
+
+
+def test_news_data_never_changes_baseline_or_benchmark_records():
+    plain = run_backtest(noisy_series(), models=MODELS, horizon=3, min_train_years=5).to_frame()
+    altered = news_frame()
+    altered["growth_rate"] = altered["growth_rate"] * 7 - 3
+
+    for news in (news_frame(), altered):
+        frame = news_backtest(news).to_frame()
+        pd.testing.assert_frame_equal(frame[frame["variant"] != NEWS].reset_index(drop=True), plain)
+        naive = frame[frame["model"] == NAIVE_MODEL_NAME]
+        assert set(naive["variant"]) == {"benchmark"}
+
+
+def test_news_variant_is_reported_separately():
+    result = news_backtest(news_frame())
+    frame = result.to_frame()
+    assert backtest_module.VARIANT_NEWS_ADJUSTED_HISTORICAL == NEWS
+    assert set(frame["variant"]) == {"baseline", NEWS, "benchmark"}
+    for model in MODELS:
+        base = frame[(frame["model"] == model) & (frame["variant"] == "baseline")]
+        adj = frame[(frame["model"] == model) & (frame["variant"] == NEWS)]
+        assert list(base[["origin", "year"]].itertuples(index=False)) == \
+            list(adj[["origin", "year"]].itertuples(index=False))
+
+    summary = summarize_backtest(result)
+    pairs = set(zip(summary["model"], summary["variant"]))
+    for model in MODELS:
+        assert {(model, "baseline"), (model, NEWS)} <= pairs
+    assert (NAIVE_MODEL_NAME, NEWS) not in pairs
+    assert summary[["mape", "rmse", "mae", "bias"]].notna().all().all()
+
+
+def test_news_adjustment_keeps_existing_temporal_decay_across_horizons():
+    news = news_frame()
+    horizon = 4
+    result = news_backtest(news, horizon=horizon)
+    frame = result.to_frame()
+    decay = TemporalDecay(long_term_decay_rate=NEWS_CONFIG["long_term_decay_rate"])
+    news_weight = NEWS_CONFIG["adjustment_weights"]["news_weight"]
+
+    for fold in result.folds:
+        news_avg = NewsAdjustment(as_of=news_as_of(fold.origin)).calculate(news, NEWS_CONFIG)
+        assert news_avg != 0
+        expected = np.array([1 + news_weight * news_avg * decay.calculate_news_decay(i, horizon)
+                             for i in range(horizon)])
+        for model in MODELS:
+            base = fold_rows(frame, fold.origin, "baseline")
+            adj = fold_rows(frame, fold.origin, NEWS)
+            base, adj = base[base["model"] == model], adj[adj["model"] == model]
+            assert list(adj["horizon"]) == list(range(1, horizon + 1))
+            np.testing.assert_allclose(adj["predicted"].to_numpy() / base["predicted"].to_numpy(),
+                                       expected, rtol=1e-12)
+
+
+def test_irrelevant_headlines_in_window_give_zero_impact_not_failure():
+    news = news_frame().assign(relevant=0)
+    frame = news_backtest(news).to_frame()
+    base = fold_rows(frame, TARGET_ORIGIN, "baseline")
+    adj = fold_rows(frame, TARGET_ORIGIN, NEWS)
+    assert (adj["status"] == "ok").all()
+    np.testing.assert_allclose(adj["predicted"], base["predicted"])
+
+
+def test_folds_without_news_in_window_fail_explicitly():
+    result = news_backtest(news_frame(start_year=TARGET_ORIGIN + 1))
+    frame = result.to_frame()
+    adjusted = frame[frame["variant"] == NEWS]
+    early = adjusted[adjusted["origin"] <= TARGET_ORIGIN]
+    later = adjusted[adjusted["origin"] > TARGET_ORIGIN]
+
+    assert not early.empty and not later.empty
+    assert (early["status"] == "failed").all() and early["predicted"].isna().all()
+    assert early["message"].str.contains("No analysed headlines").all()
+    assert (later["status"] == "ok").all()
+    assert (frame.loc[frame["variant"] == "baseline", "status"] == "ok").all()
+
+    failures = result.failures_frame()
+    assert set(failures["error_type"]) == {"InsufficientNewsData"}
+    summary = summarize_backtest(result, group_by=["variant"]).set_index("variant")
+    assert summary.loc[NEWS, "n_failed"] == len(early)
+    assert summary.loc[NEWS, "n_valid"] == len(later)
+
+
+def test_news_processing_error_marks_only_that_fold_failed(monkeypatch):
+    original_apply = NewsAdjustment.apply
+
+    def flaky_apply(self, baseline_df, data, config):
+        if self.as_of.year == 2018:
+            raise RuntimeError("simulated news failure")
+        return original_apply(self, baseline_df, data, config)
+
+    monkeypatch.setattr(NewsAdjustment, "apply", flaky_apply)
+    result = news_backtest(news_frame())
+    frame = result.to_frame()
+    adjusted = frame[frame["variant"] == NEWS]
+
+    failed = adjusted[adjusted["origin"] == 2018]
+    assert (failed["status"] == "failed").all()
+    assert failed["message"].str.contains("simulated news failure").all()
+    assert failed["error"].isna().all()
+    assert (adjusted.loc[adjusted["origin"] != 2018, "status"] == "ok").all()
+    assert (frame.loc[frame["variant"] == "baseline", "status"] == "ok").all()
+    assert set(result.failures_frame()["error_type"]) == {"RuntimeError"}
+
+
+def test_baseline_failure_marks_news_variant_failed(monkeypatch):
+    monkeypatch.setitem(BaselineModelFactory._models, "Always Fails", AlwaysFailsForecaster)
+    frame = news_backtest(news_frame(), models=["Always Fails"]).to_frame()
+    adjusted = frame[frame["variant"] == NEWS]
+    assert (adjusted["status"] == "failed").all()
+    assert adjusted["message"].str.contains("Baseline forecast failed").all()
+
+
+def test_news_and_indicator_variants_are_independent():
+    news, indicators = news_frame(), indicator_frame()
+    both = run_backtest(
+        noisy_series(), models=MODELS, horizon=3, min_train_years=5,
+        use_indicators=True, indicators=indicators, indicator_weights=INDICATOR_WEIGHTS,
+        indicator_weight=INDICATOR_WEIGHT, use_news=True, news=news, news_config=NEWS_CONFIG,
+    ).to_frame()
+    news_only = news_backtest(news).to_frame()
+    indicators_only = indicator_backtest(indicators).to_frame()
+
+    def variant(frame, name):
+        return frame[frame["variant"] == name].reset_index(drop=True)
+
+    pd.testing.assert_frame_equal(variant(both, NEWS), variant(news_only, NEWS))
+    pd.testing.assert_frame_equal(variant(both, "indicator_adjusted_past_only"),
+                                  variant(indicators_only, "indicator_adjusted_past_only"))
+
+
+@pytest.mark.parametrize("kwargs, error, match", [
+    (dict(news=None), ValueError, "non-empty DataFrame"),
+    (dict(news=pd.DataFrame()), ValueError, "non-empty DataFrame"),
+    (dict(news_config=["not", "a", "mapping"]), TypeError, "mapping"),
+    (dict(news_lookback_days=0), ValueError, "positive integer"),
+    (dict(news=news_frame().drop(columns=["category"])), ValueError, "missing columns"),
+    (dict(news=news_frame().assign(date="not a date")), ValueError, "unparseable"),
+    (dict(news=news_frame().assign(growth_rate=np.nan)), ValueError, "finite numbers"),
+])
+def test_invalid_news_configuration_is_rejected(kwargs, error, match):
+    params = dict(news=news_frame(), news_config=NEWS_CONFIG)
+    params.update(kwargs)
+    with pytest.raises(error, match=match):
+        run_backtest(noisy_series(), models=MODELS, horizon=3, min_train_years=5,
+                     use_news=True, **params)
+
+
+def test_news_inputs_without_use_news_are_rejected():
+    with pytest.raises(ValueError, match="use_news is False"):
+        run_backtest(noisy_series(), news=news_frame())
+    with pytest.raises(ValueError, match="use_news is False"):
+        run_backtest(noisy_series(), news_config=NEWS_CONFIG)
+
+
+# --- headline-analysis cache (no LLM) ---
+
+def fake_analyzer(calls, growth_rate=2.5):
+    def analyze(headline_dict):
+        calls.append(headline_dict["title"])
+        return {"category": "Demand", "growth_rate": growth_rate, "reason": "fake", "relevant": 1}
+    return analyze
+
+
+def raw_headlines():
+    return pd.DataFrame({
+        "title": ["Chip demand surges", "Supply chain eases", "Chip demand surges"],
+        "date": pd.to_datetime(["2018-12-01", "2018-12-02", "2018-12-01"], utc=True),
+        "url": ["u1", "u2", "u1"],
+    })
+
+
+def test_same_headline_and_configuration_is_analysed_once():
+    calls, cache = [], HeadlineAnalysisCache()
+    fingerprint = analysis_fingerprint("prompt v1", model="model-a")
+
+    first = analyze_headlines_cached(raw_headlines(), fake_analyzer(calls), cache, fingerprint)
+    second = analyze_headlines_cached(raw_headlines(), fake_analyzer(calls), cache, fingerprint)
+
+    assert calls == ["Chip demand surges", "Supply chain eases"]
+    pd.testing.assert_frame_equal(first, second)
+    assert list(first.columns) == ["title", "date", "category", "growth_rate", "reason", "relevant"]
+    assert (first["date"] == raw_headlines()["date"]).all()
+
+
+@pytest.mark.parametrize("changed", [
+    dict(system_prompt="prompt v2", model="model-a"),
+    dict(system_prompt="prompt v1", model="model-b"),
+    dict(system_prompt="prompt v1", model="model-a", prompt_version="2"),
+])
+def test_changing_analysis_configuration_invalidates_cache(changed):
+    calls, cache = [], HeadlineAnalysisCache()
+    analyze_headlines_cached(raw_headlines(), fake_analyzer(calls), cache,
+                             analysis_fingerprint("prompt v1", model="model-a"))
+    calls.clear()
+    out = analyze_headlines_cached(raw_headlines(), fake_analyzer(calls, growth_rate=-1.0), cache,
+                                   analysis_fingerprint(**changed))
+    assert calls == ["Chip demand surges", "Supply chain eases"]
+    assert (out["growth_rate"] == -1.0).all()
+
+
+def test_file_cache_round_trip_avoids_reanalysis(tmp_path):
+    path = str(tmp_path / ".forecast_cache" / "headlines.json")
+    fingerprint = analysis_fingerprint("prompt v1")
+    calls = []
+    cache = HeadlineAnalysisCache(path)
+    expected = analyze_headlines_cached(raw_headlines(), fake_analyzer(calls), cache, fingerprint)
+    cache.save()
+
+    def must_not_be_called(_):
+        raise AssertionError("cached headline re-analysed")
+
+    reloaded = HeadlineAnalysisCache(path)
+    got = analyze_headlines_cached(raw_headlines(), must_not_be_called, reloaded, fingerprint)
+    pd.testing.assert_frame_equal(got, expected)
+
+
+def test_failed_analysis_is_not_cached_or_scored_as_zero():
+    cache = HeadlineAnalysisCache()
+    fingerprint = analysis_fingerprint("prompt v1")
+
+    def failing(headline_dict):
+        return {"category": "Neutral/Noise", "growth_rate": 0.0,
+                "reason": ANALYST_FAILURE_REASON, "relevant": 0}
+
+    with pytest.raises(HeadlineAnalysisError, match="LLM analysis failed"):
+        analyze_headlines_cached(raw_headlines(), failing, cache, fingerprint)
+    assert len(cache) == 0
+
+    calls = []
+    analyze_headlines_cached(raw_headlines(), fake_analyzer(calls), cache, fingerprint)
+    assert calls == ["Chip demand surges", "Supply chain eases"]
+
+
+# --- historical GDELT fetching (no network) ---
+
+def test_fetch_headlines_for_origins_uses_each_origin_as_of():
+    seen = []
+
+    def fake_fetch(days_back, end_date):
+        seen.append((days_back, end_date))
+        frame = pd.DataFrame({"title": [f"t{end_date.year}", "shared"],
+                              "date": [end_date, end_date], "url": [f"u{end_date.year}", "shared"]})
+        return frame, True
+
+    out = fetch_headlines_for_origins([2017, 2016, 2017], fake_fetch)
+    assert seen == [(90, news_as_of(2016)), (90, news_as_of(2017))]
+    assert sorted(out["url"]) == ["shared", "u2016", "u2017"]
+
+
+def _gdelt_module():
+    pytest.importorskip("gdeltdoc")
+    from src.news import gdelt
+    return gdelt
+
+
+def test_gdelt_historical_fetch_is_bounded_by_end_date(monkeypatch):
+    gdelt = _gdelt_module()
+    captured = []
+    end = news_as_of(2018)
+
+    def fake_batch(keywords, start_date, end_date, country_fips, max_records, batch_index):
+        captured.append((start_date, end_date, country_fips))
+        dates = ["2018-10-01 12:00:00", "2018-10-02 23:59:59", "2018-12-31 23:59:59",
+                 "2019-01-01 00:00:00", "2019-03-01 00:00:00"]
+        return pd.DataFrame({
+            "title": [f"t{i}" for i in range(len(dates))],
+            "date": pd.to_datetime(dates, utc=True),
+            "url": [f"u{i}" for i in range(len(dates))],
+        })
+
+    monkeypatch.setattr(gdelt, "_search_articles_batch", fake_batch)
+    df, ok = gdelt.fetch_max_gdelt_articles(["AI"], days_back=90, end_date=end)
+
+    from datetime import datetime
+    assert captured == [(datetime(2018, 10, 2, 23, 59, 59), datetime(2018, 12, 31, 23, 59, 59), None)]
+    assert ok and sorted(df["url"]) == ["u1", "u2"]
+
+    captured.clear()
+    country_df, _ = gdelt.fetch_country_headlines("USA", ["AI"], end_date=end)
+    assert captured[0][:2] == (datetime(2018, 10, 2, 23, 59, 59), datetime(2018, 12, 31, 23, 59, 59))
+    assert sorted(country_df["url"]) == ["u1", "u2"]
+
+    with pytest.raises(ValueError):
+        gdelt.fetch_max_gdelt_articles(["AI"], end_date="not a date")
+
+
+def test_gdelt_fetch_without_end_date_keeps_production_window(monkeypatch):
+    gdelt = _gdelt_module()
+    captured = []
+
+    def fake_batch(keywords, start_date, end_date, country_fips, max_records, batch_index):
+        captured.append((start_date, end_date))
+        return pd.DataFrame({"title": ["a"], "date": pd.to_datetime(["2099-01-01"], utc=True), "url": ["u"]})
+
+    monkeypatch.setattr(gdelt, "_search_articles_batch", fake_batch)
+    df, _ = gdelt.fetch_max_gdelt_articles(["AI"], days_back=90)
+
+    start, end = captured[0]
+    assert isinstance(start, str) and isinstance(end, str)
+    today = pd.Timestamp.now(tz="UTC")
+    assert end in {today.strftime("%Y-%m-%d"), (today - pd.Timedelta(days=1)).strftime("%Y-%m-%d")}
+    assert list(df["url"]) == ["u"]
