@@ -316,8 +316,9 @@ def render_methodology() -> None:
 8. **News-data limitation** — no suitable historical analyzed-news archive exists for 2004–2022, so
    news adjustments are not part of these results.
 
-Full methodology: `docs/evaluation.md`. Raw official sources are in `data/evaluation/raw/`; results in
-`data/evaluation/results/` (regenerate with the scripts in `scripts/`, see README).
+Full methodology: `README.md` (Features → Evaluation and backtesting; Development → Reproducing the
+evaluation results). Raw official sources are in `data/evaluation/raw/`; results in `data/evaluation/results/` (regenerate with
+the scripts in `scripts/`).
             """
         )
 
