@@ -11,7 +11,7 @@ framework that measures whether those models and adjustments actually work out o
 
 ---
 
-## Overview
+## 📋 Overview
 
 Forecast_S produces annual market forecasts at country, regional and global level:
 
@@ -56,9 +56,9 @@ flowchart TD
 
 ---
 
-## Features
+## ⚙️ Features
 
-### Forecasting
+### 🔮 Forecasting
 
 **Forecasting approaches** (selected on the Configuration page):
 
@@ -85,7 +85,7 @@ Regional aggregation uses the hierarchy in `config/aggregation.json`.
 | **Logistic Growth** | S-curve fitted with `scipy.optimize.curve_fit`; falls back to 3-yr CAGR if the fit fails. |
 | **Naive (last value)** | Evaluation benchmark only: repeats the last observed value. It is not offered as a forecasting model in the application. |
 
-### News Analysis
+### 📰 News Analysis
 
 - **Retrieval:** GDELT DOC API via `gdeltdoc` (`src/news/gdelt.py`). Each topic is queried separately, globally and, for country-level methods, per country. Country ISO3 codes are mapped to GDELT FIPS codes through `config/flat-ui__data-Sun Aug 17 2025.csv`. The default window is the last 90 days, up to 250 articles per query.
 - **Rate limiting:** a global limiter spaces GDELT requests 5–6 seconds apart.
@@ -97,7 +97,7 @@ Regional aggregation uses the hierarchy in `config/aggregation.json`.
   - Over the forecast horizon the impact decays as `0.5^(i / (T × rate))`, where the decay `rate` is calibrated per market by the LLM (range 0.10–0.90, shrunk toward a prior of 0.65).
 - **Country fallback:** a country with fewer than 5 analyzed headlines uses global news at reduced confidence (default multiplier 0.5).
 
-### Indicators
+### 📊 Indicators
 
 - **Optional inputs:** global and country indicator series, each with a user-defined weight (0–1).
 - **Signal:** the weighted mean of year-over-year indicator growth over the training period, clamped to ±30%.
@@ -106,7 +106,7 @@ Regional aggregation uses the hierarchy in `config/aggregation.json`.
 
 The indicator mechanism is a heuristic growth adjustment, not a causal or econometric model.
 
-### Streamlit Application
+### 🖥️ Streamlit Application
 
 Pages in sidebar order:
 
@@ -120,13 +120,13 @@ Pages in sidebar order:
 | Export | `pages/05_Export.py` | Download forecast and news tables, plus stored evaluation results |
 | Model Evaluation | `pages/06_Evaluation.py` | Read-only dashboard of the stored out-of-sample evaluation results; works offline |
 
-### Exports
+### 📤 Exports
 
 - **Forecasts:** the forecast table as CSV or Excel.
 - **News:** the analyzed headlines (category, growth impact, reason) as CSV or Excel.
 - **Evaluation:** the stored experiment files from `data/evaluation/results/`, downloadable from the Export and Model Evaluation pages.
 
-### Evaluation and Backtesting
+### 📈 Evaluation and Backtesting
 
 The evaluation package (`src/forecasting/evaluation/`) runs a reproducible out-of-sample test of the
 forecasting models:
@@ -140,7 +140,8 @@ forecasting models:
 - **Paired comparisons.** Improvements against the naive benchmark, and adjusted-vs-baseline effects for the same model, are computed on identical (origin, target year) pairs, with win/loss counts. No composite score and no significance tests are used.
 - **Exports and provenance.** Results are exported to JSON and CSV (summaries, improvements, records, failures) together with the full configuration, dataset description, run timestamp and SHA-256 input fingerprints.
 
-### Leakage Control
+<a id="leakage-control"></a>
+### 🔒 Leakage Control
 
 - **Target data:** each fold's training series is cut off at the origin year.
 - **Indicators:** only indicator rows with `year <= origin` are passed to the adjustment.
@@ -150,7 +151,7 @@ forecasting models:
   - *Current-vintage data.* The Census and BEA series are the latest revised values, not the figures a forecaster had at each origin, so the evaluation is a historical walk-forward test rather than a real-time vintage backtest.
   - *LLM hindsight.* Even with correctly cut-off headlines, a modern LLM may already know how later events unfolded, which can bias any historical news evaluation.
 
-### Real-Data Evaluation
+### 🧪 Real-Data Evaluation
 
 Dataset: **U.S. Census Bureau annual retail e-commerce sales**, 2000–2025 (26 years; each year is the
 sum of four not-seasonally-adjusted quarters, millions of current US$). Design: minimum 5 training
@@ -183,7 +184,7 @@ Interpretation (descriptive, for this single series):
 - Regime changes dominate the errors: the 2020–2022 pandemic jump and its aftermath account for a large share of the trend models' error.
 - These results do not show that any model is universally better; they describe one market series.
 
-### Indicator Evaluation
+### 📊 Indicator Evaluation
 
 The indicator adjustment was tested with **BEA Personal Consumption Expenditures: Goods** (indicator
 weight 1.0, overall indicator weight 0.3, fixed before the run). Results are stored in
@@ -208,7 +209,7 @@ inspected and excluded before any adjusted result was computed: the historical s
 documented source changes and implausible year-to-year breaks
 (`data/evaluation/indicators/us_internet_users_assessment.json`).
 
-### News Evaluation Limitation
+### 📰 News Evaluation Limitation
 
 The infrastructure for historical news evaluation exists: `as_of` cutoffs, per-origin GDELT
 retrieval, a cached headline analyzer and a news variant in the backtest, all covered by tests.
@@ -220,7 +221,7 @@ See [CONTRIBUTION.md](CONTRIBUTION.md) for how the evaluation framework extends 
 
 ---
 
-## Prerequisites
+## 📦 Prerequisites
 
 | Requirement | Needed for |
 |---|---|
@@ -235,7 +236,7 @@ The Model Evaluation page and the stored evaluation results need no database, LL
 
 ---
 
-## Installation
+## 🛠️ Installation
 
 Windows (PowerShell):
 
@@ -272,7 +273,7 @@ cp config/.env.example config/.env           # Linux/macOS
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 Run from the project root, because configuration paths such as `config/.env` are relative:
 
@@ -298,7 +299,7 @@ exploring the UI; it is not real market data.
 
 ---
 
-## Repository Structure
+## 🗂️ Repository Structure
 
 ```text
 Forecast_S/
@@ -421,9 +422,10 @@ Forecast_S/
 
 ---
 
-## Configuration
+<a id="configuration"></a>
+## ⚙️ Configuration
 
-### Environment variables
+### 🔐 Environment variables
 
 Settings are read from `config/.env`, loaded relative to the working directory.
 
@@ -452,7 +454,7 @@ Its Azure example endpoint is a placeholder; replace it with your own.
 `DEFAULT_FORECAST_METHOD` and `DEBUG_MODE` (and the commented-out `NEWS_API_KEY` / `NEWS_API_URL`).
 Setting them has no effect.
 
-### Database (optional)
+### 🗄️ Database (optional)
 
 `DB_URL` is passed directly to SQLAlchemy's `create_engine`. `pymysql` is included for MySQL URLs;
 other databases need their own driver.
@@ -460,7 +462,7 @@ other databases need their own driver.
 - `DB_URL` empty, or no engine can be created from it (invalid URL, missing driver) → the app uses demo data.
 - `DB_URL` valid but the database unreachable, or missing the expected tables → extraction fails with an error. It does **not** silently fall back to demo data.
 
-### `config/settings.toml`
+### ⚙️ `config/settings.toml`
 
 The only setting the code reads is `[gdelt] ssl_verify`. The other sections (`[app]`, `[defaults]`,
 `[news]` and so on) are not loaded at runtime; forecast settings are chosen on the Configuration page.
@@ -471,7 +473,7 @@ The only setting the code reads is `[gdelt] ssl_verify`. The other sections (`[a
 `GDELT_SSL_VERIFY=false`, change it to `true` unless you are troubleshooting certificate errors on a
 trusted network.
 
-### Configuration page settings
+### 🎛️ Configuration page settings
 
 - **Market and method:** market name, forecasting approach and baseline model.
 - **Weights:** news influence slider (default 70%; the indicator weight is the remainder) and per-indicator weights (0–1).
@@ -480,9 +482,9 @@ trusted network.
 
 ---
 
-## Data Requirements
+## 📚 Data Requirements
 
-### Application input data
+### 💾 Application input data
 
 **SQL source.** Market and indicator values are extracted by KPI key
 (`src/services/data/processor.py`). The query targets the original project's KPI schema (`kpisValues`,
@@ -512,7 +514,7 @@ intended only for UI testing.
 **News data (GDELT).** Requires topics and, for country-level methods, valid ISO3 codes. The GDELT
 DOC API covers roughly the last three months, which matches the default 90-day window.
 
-### Stored evaluation datasets
+### 📦 Stored evaluation datasets
 
 These files are inputs and outputs of the evaluation experiments and are separate from the
 application's input data:
@@ -532,9 +534,9 @@ and BEA series are current-vintage (revised) data; see [Leakage Control](#leakag
 
 ---
 
-## LLM Integration
+## 🤖 LLM Integration
 
-### Architecture
+### 🏗️ Architecture
 
 | Component | Location | Role |
 |---|---|---|
@@ -545,7 +547,7 @@ and BEA series are current-vintage (revised) data; see [Leakage Control](#leakag
 | Categories | `src/llm/categories/` | Loading and saving default and market-specific categories |
 | Calibration | `src/llm/calibrators/` | Market-specific decay-rate calibration |
 
-### Supported providers
+### 🔌 Supported providers
 
 | Provider | Covers | Configuration |
 |---|---|---|
@@ -555,7 +557,7 @@ and BEA series are current-vintage (revised) data; see [Leakage Control](#leakag
 There are no dedicated integrations for Anthropic, Google, Perplexity or OpenRouter. A service that
 offers an OpenAI-compatible API can be used only through `OPENAI_BASE_URL` with `LLM_PROVIDER=openai`.
 
-### What the LLM does
+### 🧠 What the LLM does
 
 - **Headline classification:** each headline is sent with a global or a country-specific prompt listing every category and its allowed growth range. The model must return JSON:
 
@@ -572,14 +574,14 @@ offers an OpenAI-compatible API can be used only through `OPENAI_BASE_URL` with 
 - **Topic generation:** GDELT search topics for the market, with template topics as a fallback.
 - **Decay calibration:** a decay rate (0.10–0.90) for how quickly news impact fades over the forecast horizon, shrunk toward a prior of 0.65.
 
-### Failure behavior
+### ⚠️ Failure behavior
 
 LLM errors (missing key, unreachable server, invalid JSON) do not stop the app. The affected headline
 is recorded as `Neutral/Noise` with 0% impact, so news adjustments become small or zero. There are no
 automatic retries. The production analyst does not cache results; the evaluation package has a
 separate cache that stores only successful analyses.
 
-### Historical evaluation caveat
+### ⏳ Historical evaluation caveat
 
 When the LLM is used on historical headlines, retrieval can be cut off correctly at the forecast
 origin, but the model itself may know about later events from its training data. Any historical
@@ -587,9 +589,10 @@ news evaluation with a modern LLM is therefore subject to hindsight bias.
 
 ---
 
-## Development
+## 🧑‍💻 Development
 
-### Running tests
+<a id="running-tests"></a>
+### 🧪 Running tests
 
 pytest is not listed in `requirements.txt`; install it in the virtual environment first:
 
@@ -614,7 +617,7 @@ pipeline and Top-Down distribution (`test_forecasting_pipeline.py`), LLM headlin
 mocked Ollama endpoint (`test_headline_analysis.py`), and import/execution of `app.py` and all six
 pages under a Streamlit mock (`test_smoke.py`).
 
-### Reproducing the evaluation results
+### 🔁 Reproducing the evaluation results
 
 Run from the project root:
 
@@ -630,7 +633,7 @@ python scripts/run_census_indicator_experiment.py  # -> data/evaluation/results/
 With the stored source files, re-running the experiments reproduces the stored metrics; only the
 `run_timestamp` metadata changes.
 
-### Development principles
+### 📐 Development principles
 
 - **Temporal isolation:** any new model, adjustment or data source used in evaluation must only see data available at the forecast origin.
 - **Reproducibility:** experiments are deterministic given their inputs, and results are written with their configuration.
@@ -643,7 +646,7 @@ No formatter, linter or type checker is configured. Before committing, run the t
 
 ---
 
-## Troubleshooting
+## 🛠️ Troubleshooting
 
 | Problem | Cause and fix |
 |---|---|
